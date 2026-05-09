@@ -113,7 +113,7 @@ with st.sidebar:
                         else:
                             st.success(msg)
                     else:
-                        st.success("Pro aktiv. Unlimited Generations.")
+                        st.success("Pro aktiv. Watermark wird entfernt.")
             else:
                 st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
 
