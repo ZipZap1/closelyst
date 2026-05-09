@@ -53,6 +53,16 @@ def cached_voices():
         return {"_error": str(exc)}
 
 
+# License validation hits the LS API on every render which is slow and
+# wasteful. Cache the result for 5 minutes per unique key so typing in
+# any other field doesn't re-validate. The 5-minute window is short enough
+# that auto-reset on a billing renewal still kicks in within a single use
+# session.
+@st.cache_data(ttl=300, show_spinner=False)
+def cached_validate(key):
+    return license_mod.validate_license_key(key)
+
+
 # ----- Sidebar: license / pro -----
 with st.sidebar:
     st.subheader("Pro / Watermark entfernen")
@@ -66,7 +76,7 @@ with st.sidebar:
     pro_remaining = None
     if license_key_input:
         with st.spinner("License prüfen..."):
-            result = license_mod.validate_license_key(license_key_input)
+            result = cached_validate(license_key_input)
             if result.get("valid"):
                 limit = result.get("activation_limit")
                 usage = result.get("activation_usage", 0) or 0
@@ -224,21 +234,27 @@ with tab_video:
     else:
         st.info("Keine Stimmen verfügbar.")
 
-    # Footage source (4 options, image-enhance moved to its own tab)
+    # Footage source. Short labels with captions so the choice fits in one
+    # glance instead of forcing users to read four long sentences.
+    FOOTAGE_STOCK = "Stock"
+    FOOTAGE_UPLOAD = "Upload"
+    FOOTAGE_AI_IMAGE = "AI-Bild"
+    FOOTAGE_LIPSYNC = "Lip-Sync"
     footage_mode = st.radio(
         "Hintergrund",
-        options=[
-            "Auto: Stock-Footage von Pexels",
-            "Eigenes Video oder Bild hochladen",
-            "AI: Bild aus Text generieren (Pro)",
-            "AI: Lip-Sync auf mein Portrait-Video (Pro)",
+        options=[FOOTAGE_STOCK, FOOTAGE_UPLOAD, FOOTAGE_AI_IMAGE, FOOTAGE_LIPSYNC],
+        captions=[
+            "Pexels-Match aus deinem Text (gratis)",
+            "Eigenes Video oder Bild (gratis)",
+            "AI generiert Hintergrund aus Text (Pro)",
+            "Lippen deiner Person zum Voiceover (Pro)",
         ],
-        horizontal=False,
+        horizontal=True,
         key="footage_mode_radio",
     )
     uploaded_media = None
     ai_prompt_override = ""
-    if footage_mode == "Eigenes Video oder Bild hochladen":
+    if footage_mode == FOOTAGE_UPLOAD:
         uploaded_media = st.file_uploader(
             "Datei (Video: .mp4 .mov / Bild: .jpg .png .webp, max 50 MB, wird auf 9:16 gecroppt)",
             type=["mp4", "mov", "m4v", "jpg", "jpeg", "png", "webp"],
@@ -249,7 +265,7 @@ with tab_video:
             (".jpg", ".jpeg", ".png", ".webp")
         ):
             st.caption("Bild erkannt, bekommt einen langsamen Zoom (Ken-Burns).")
-    elif footage_mode == "AI: Bild aus Text generieren (Pro)":
+    elif footage_mode == FOOTAGE_AI_IMAGE:
         ai_prompt_override = st.text_input(
             "Prompt (optional, leer = nutzt deinen Voiceover-Text als Prompt)",
             placeholder="Z.B.: Solo-Founder programmiert nachts, Neon-Stadt im Hintergrund",
@@ -257,8 +273,8 @@ with tab_video:
         )
         st.caption("Tipp: englische Prompts liefern oft schärfere Ergebnisse, weil das Modell auf englischen Beschreibungen trainiert ist.")
         if not is_pro:
-            st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
-    elif footage_mode == "AI: Lip-Sync auf mein Portrait-Video (Pro)":
+            st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+    elif footage_mode == FOOTAGE_LIPSYNC:
         uploaded_media = st.file_uploader(
             "Portrait-Video (.mp4 .mov, 5-30 Sek, Gesicht klar sichtbar, 9:16 bevorzugt)",
             type=["mp4", "mov", "m4v"],
@@ -267,17 +283,11 @@ with tab_video:
         )
         st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden.")
         if not is_pro:
-            st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+            st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
     # Pre-flight: enable button only when all prereqs are met
-    needs_upload = footage_mode in (
-        "Eigenes Video oder Bild hochladen",
-        "AI: Lip-Sync auf mein Portrait-Video (Pro)",
-    )
-    needs_pro = footage_mode in (
-        "AI: Bild aus Text generieren (Pro)",
-        "AI: Lip-Sync auf mein Portrait-Video (Pro)",
-    )
+    needs_upload = footage_mode in (FOOTAGE_UPLOAD, FOOTAGE_LIPSYNC)
+    needs_pro = footage_mode in (FOOTAGE_AI_IMAGE, FOOTAGE_LIPSYNC)
     ready_to_generate = bool(
         text.strip()
         and selected_voice_id
@@ -286,10 +296,10 @@ with tab_video:
     )
 
     _button_label = {
-        "Auto: Stock-Footage von Pexels": "Video generieren",
-        "Eigenes Video oder Bild hochladen": "Video aus Upload generieren",
-        "AI: Bild aus Text generieren (Pro)": "AI-Bild + Video generieren",
-        "AI: Lip-Sync auf mein Portrait-Video (Pro)": "Lip-Sync + Video generieren",
+        FOOTAGE_STOCK: "Video generieren",
+        FOOTAGE_UPLOAD: "Video aus Upload generieren",
+        FOOTAGE_AI_IMAGE: "AI-Bild + Video generieren",
+        FOOTAGE_LIPSYNC: "Lip-Sync + Video generieren",
     }.get(footage_mode, "Video generieren")
     generate_btn = st.button(
         _button_label,
@@ -337,12 +347,12 @@ with tab_video:
                 audio_path = tmp_path / "voice.mp3"
                 audio_path.write_bytes(audio_bytes)
 
-                if footage_mode == "AI: Bild aus Text generieren (Pro)":
+                if footage_mode == FOOTAGE_AI_IMAGE:
                     progress.progress(40, text="AI-Bild wird generiert...")
                     prompt = ai_prompt_override.strip() or text.strip()
                     video_path = tmp_path / "ai.png"
                     ai_image.generate_image(prompt, video_path, aspect_ratio="9:16")
-                elif footage_mode == "AI: Lip-Sync auf mein Portrait-Video (Pro)":
+                elif footage_mode == FOOTAGE_LIPSYNC:
                     progress.progress(35, text="Portrait-Video wird hochgeladen...")
                     ext = Path(uploaded_media.name).suffix.lower() or ".mp4"
                     raw_path = tmp_path / f"raw{ext}"
