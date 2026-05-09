@@ -15,18 +15,15 @@ import streamlit as st
 # the modules can keep using os.environ.get(...) uniformly. Always overwrite,
 # Streamlit Cloud's own injection may set empty values which would block us.
 load_dotenv(Path(__file__).parent / ".env")
-_secrets_loaded = []
-_secrets_error = None
 try:
     for _key in st.secrets:
         _value = st.secrets[_key]
         if _value is not None:
-            value_str = str(_value)
-            if value_str.strip():
-                os.environ[_key] = value_str
-                _secrets_loaded.append(_key)
-except Exception as _exc:
-    _secrets_error = repr(_exc)
+            _value_str = str(_value)
+            if _value_str.strip():
+                os.environ[_key] = _value_str
+except Exception:
+    pass
 
 import voice
 import stock
@@ -34,19 +31,6 @@ import compose
 import license as license_mod
 
 st.set_page_config(page_title="VoiceClip", layout="centered")
-
-# Diagnostic banner so we can see what got loaded. Remove once stable.
-with st.expander("Config status (debug)", expanded=False):
-    st.write("Secrets loaded into env:", _secrets_loaded or "(none)")
-    if _secrets_error:
-        st.write("Secrets read error:", _secrets_error)
-    relevant = ["ELEVENLABS_API_KEY", "PEXELS_API_KEY", "LEMONSQUEEZY_API_KEY",
-               "LEMONSQUEEZY_STORE_SUBDOMAIN", "LEMONSQUEEZY_PRODUCT_REMOVE_WATERMARK",
-               "LEMONSQUEEZY_PRODUCT_PRO_MONTHLY"]
-    st.write({
-        k: ("set, length=" + str(len(os.environ.get(k, "")))) if os.environ.get(k) else "MISSING"
-        for k in relevant
-    })
 
 st.title("VoiceClip")
 st.caption(
