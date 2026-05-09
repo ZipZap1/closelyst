@@ -116,10 +116,12 @@ Verbraucherschlichtungsstelle teilzunehmen.
 
 ---
 
-**Kontakt:**
-Haci Ibrahim Dogan
-Holunderweg 3, 44869 Bochum
-E-Mail: info@pruefungscoach.tech
+**Kontakt:**<br>
+Haci Ibrahim Dogan<br>
+Holunderweg 3<br>
+44869 Bochum<br>
+E-Mail: info@pruefungscoach.tech<br>
 Telefon: +49 1551 0899025
-    """
+    """,
+    unsafe_allow_html=True,
 )

@@ -17,9 +17,9 @@ st.markdown(
 
 ## 1. Verantwortlicher
 
-Haci Ibrahim Dogan
-Holunderweg 3
-44869 Bochum
+Haci Ibrahim Dogan<br>
+Holunderweg 3<br>
+44869 Bochum<br>
 E-Mail: info@pruefungscoach.tech
 
 ## 2. Allgemeine Hinweise
@@ -78,8 +78,8 @@ Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung
 (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit (Art. 20),
 Widerspruch (Art. 21) und Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO).
 
-Zuständige Aufsichtsbehörde:
-Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen
+Zuständige Aufsichtsbehörde:<br>
+Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen<br>
 https://www.ldi.nrw.de
 
 ## 9. Änderungen
@@ -93,5 +93,6 @@ geänderte Rechtslage oder Funktionen anzupassen.
 Vor Veröffentlichung über einen Generator wie [datenschutz-generator.de](https://datenschutz-generator.de)
 oder [eRecht24](https://www.e-recht24.de/datenschutzerklaerung-muster.html) prüfen
 und ergänzen lassen.*
-    """
+    """,
+    unsafe_allow_html=True,
 )

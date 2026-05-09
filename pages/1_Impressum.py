@@ -9,19 +9,19 @@ st.markdown(
     """
 **Angaben gemäß § 5 DDG**
 
-Haci Ibrahim Dogan
-Holunderweg 3
-44869 Bochum
+Haci Ibrahim Dogan<br>
+Holunderweg 3<br>
+44869 Bochum<br>
 Deutschland
 
 **Kontakt**
 
-Telefon: +49 1551 0899025
+Telefon: +49 1551 0899025<br>
 E-Mail: info@pruefungscoach.tech
 
 **Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV**
 
-Haci Ibrahim Dogan
+Haci Ibrahim Dogan<br>
 (Anschrift wie oben)
 
 **EU-Streitschlichtung**
@@ -31,5 +31,6 @@ https://ec.europa.eu/consumers/odr/
 
 Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
 Verbraucherschlichtungsstelle teilzunehmen.
-    """
+    """,
+    unsafe_allow_html=True,
 )
