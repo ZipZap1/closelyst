@@ -59,28 +59,28 @@ with st.sidebar:
     license_key_input = st.text_input(
         "License Key",
         type="password",
-        help="Hast du einen Key gekauft? Hier einfuegen, um diese Session ohne Watermark zu exportieren.",
+        help="Hast du einen Key gekauft? Hier einfügen, um diese Session ohne Watermark zu exportieren.",
     )
     is_pro = False
     is_one_shot_key = False
     if license_key_input:
-        with st.spinner("License pruefen..."):
+        with st.spinner("License prüfen..."):
             result = license_mod.validate_license_key(license_key_input)
             if result.get("valid"):
                 limit = result.get("activation_limit")
                 usage = result.get("activation_usage", 0)
                 spent = limit is not None and limit > 0 and usage >= limit
                 if spent:
-                    st.error("Key gueltig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro Monatlich.")
+                    st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
                 else:
                     is_pro = True
                     is_one_shot_key = (limit == 1)
                     if is_one_shot_key:
-                        st.success("Pro aktiv. 1 Video ohne Watermark verfuegbar.")
+                        st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
                     else:
                         st.success("Pro aktiv. Watermark wird entfernt.")
             else:
-                st.error(f"Ungueltig: {result.get('reason', 'unbekannt')}")
+                st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
 
     st.divider()
 
@@ -127,7 +127,7 @@ elif voices_data:
     label = st.selectbox("Stimme", list(voice_options.keys()))
     selected_voice_id = voice_options[label]
 else:
-    st.info("Keine Stimmen verfuegbar.")
+    st.info("Keine Stimmen verfügbar.")
 
 generate_btn = st.button(
     "Video generieren",
@@ -200,7 +200,7 @@ if generate_btn:
                 else:
                     st.success("Pro-Export ohne Watermark.")
             else:
-                st.info("Watermark ist im Video. Fuer 2,99 EUR entfernen siehe Sidebar.")
+                st.info("Watermark ist im Video. Für 2,99 EUR entfernen siehe Sidebar.")
         except Exception as exc:
             st.error(f"Fehler: {exc}")
 
