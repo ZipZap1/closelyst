@@ -1,0 +1,250 @@
+"""Compose final TikTok-ready video using FFmpeg plus Pillow.
+
+Captions and watermark are rendered to PNG with Pillow, then overlaid via
+FFmpeg's overlay filter. This avoids the drawtext filter which is missing
+from many FFmpeg builds (Homebrew default does not include libfreetype).
+
+Word-synced captions when alignment data is provided. Falls back to static
+caption when alignment is empty.
+"""
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont
+
+
+def ensure_ffmpeg():
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("ffmpeg not found on PATH. Install: brew install ffmpeg (macOS).")
+    if not shutil.which("ffprobe"):
+        raise RuntimeError("ffprobe not found on PATH. Install ffmpeg.")
+
+
+def get_audio_duration(audio_path):
+    cmd = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(audio_path)]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return 15.0
+    try:
+        return float(json.loads(r.stdout)["format"]["duration"])
+    except (KeyError, ValueError, json.JSONDecodeError):
+        return 15.0
+
+
+def _safe_text(text, max_chars=80):
+    cleaned = (text or "").replace("\n", " ").strip()
+    if len(cleaned) > max_chars:
+        cleaned = cleaned[:max_chars].rstrip() + "..."
+    return cleaned
+
+
+def _find_font(size):
+    candidates = [
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    ]
+    for path in candidates:
+        if Path(path).exists():
+            try:
+                return ImageFont.truetype(path, size)
+            except Exception:
+                continue
+    return ImageFont.load_default()
+
+
+def _render_text_png(text, out_path, font_size=46, padding=18, max_width=940, bg_alpha=190):
+    """Render text into a transparent PNG with semi-transparent background box."""
+    font = _find_font(font_size)
+    temp = Image.new("RGBA", (1, 1))
+    measure = ImageDraw.Draw(temp)
+
+    words = text.split() or [text]
+    lines = []
+    current = ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        bbox = measure.textbbox((0, 0), candidate, font=font)
+        if bbox[2] - bbox[0] > max_width and current:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    if not lines:
+        lines = [text or "..."]
+
+    line_spacing = 8
+    line_metrics = [measure.textbbox((0, 0), line, font=font) for line in lines]
+    line_widths = [bb[2] - bb[0] for bb in line_metrics]
+    line_heights = [bb[3] - bb[1] for bb in line_metrics]
+
+    text_width = max(line_widths) if line_widths else 0
+    text_height = sum(line_heights) + line_spacing * max(0, len(lines) - 1)
+
+    img_width = max(1, text_width + padding * 2)
+    img_height = max(1, text_height + padding * 2)
+
+    img = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([0, 0, img_width, img_height], fill=(0, 0, 0, bg_alpha))
+
+    y = padding
+    for line, lw, lh in zip(lines, line_widths, line_heights):
+        x = (img_width - lw) // 2
+        draw.text((x, y), line, fill=(255, 255, 255, 255), font=font)
+        y += lh + line_spacing
+
+    img.save(out_path, "PNG")
+    return out_path
+
+
+def _alignment_to_phrases(alignment, target_seconds=1.6, max_words=3):
+    """Group ElevenLabs character-level alignment into displayable phrases.
+
+    Returns list of {text, start, end}. Empty list if alignment is empty/invalid.
+    """
+    if not alignment:
+        return []
+    chars = alignment.get("characters") or []
+    starts = alignment.get("character_start_times_seconds") or []
+    ends = alignment.get("character_end_times_seconds") or []
+    if not (chars and starts and ends and len(chars) == len(starts) == len(ends)):
+        return []
+
+    # Build word list from characters
+    words = []
+    cur_chars = []
+    cur_start = 0.0
+    cur_end = 0.0
+    for ch, s, e in zip(chars, starts, ends):
+        if ch in (" ", "\n", "\t"):
+            if cur_chars:
+                words.append({"text": "".join(cur_chars), "start": cur_start, "end": cur_end})
+                cur_chars = []
+        else:
+            if not cur_chars:
+                cur_start = s
+            cur_chars.append(ch)
+            cur_end = e
+    if cur_chars:
+        words.append({"text": "".join(cur_chars), "start": cur_start, "end": cur_end})
+
+    if not words:
+        return []
+
+    # Group words into phrases
+    phrases = []
+    cur_words = [words[0]]
+    cur_start = words[0]["start"]
+    for w in words[1:]:
+        if (len(cur_words) >= max_words or
+                (w["end"] - cur_start) >= target_seconds):
+            phrases.append({
+                "text": " ".join(x["text"] for x in cur_words),
+                "start": cur_start,
+                "end": cur_words[-1]["end"],
+            })
+            cur_words = [w]
+            cur_start = w["start"]
+        else:
+            cur_words.append(w)
+    if cur_words:
+        phrases.append({
+            "text": " ".join(x["text"] for x in cur_words),
+            "start": cur_start,
+            "end": cur_words[-1]["end"],
+        })
+    return phrases
+
+
+def compose(audio_path, video_path, output_path, tmp_dir,
+            alignment=None, fallback_text="", with_watermark=True):
+    """Render the final 1080x1920 portrait video.
+
+    If alignment is provided and non-empty, captions are word-synced.
+    Otherwise falls back to a single static caption from fallback_text.
+    """
+    ensure_ffmpeg()
+    duration = get_audio_duration(audio_path)
+    tmp_dir = Path(tmp_dir)
+
+    phrases = _alignment_to_phrases(alignment) if alignment else []
+    if not phrases:
+        phrases = [{
+            "text": _safe_text(fallback_text) or "...",
+            "start": 0.0,
+            "end": duration,
+        }]
+
+    # Render each phrase as PNG
+    phrase_pngs = []
+    for i, ph in enumerate(phrases):
+        png = tmp_dir / f"caption_{i}.png"
+        _render_text_png(ph["text"], png, font_size=64, padding=22, max_width=900, bg_alpha=200)
+        phrase_pngs.append(png)
+
+    watermark_png = None
+    if with_watermark:
+        watermark_png = tmp_dir / "watermark.png"
+        _render_text_png("Made with VoiceClip", watermark_png,
+                         font_size=38, padding=16, max_width=900, bg_alpha=200)
+
+    # Build inputs: video, audio, captions, optional watermark
+    inputs = [
+        "-stream_loop", "-1", "-i", str(video_path),  # input 0
+        "-i", str(audio_path),                         # input 1
+    ]
+    for png in phrase_pngs:
+        inputs += ["-i", str(png)]
+    if watermark_png:
+        inputs += ["-i", str(watermark_png)]
+
+    # Filtergraph: scale video, then overlay each phrase, then watermark
+    parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]"]
+    current_label = "bg"
+    for i, ph in enumerate(phrases):
+        png_idx = 2 + i
+        next_label = f"v{i+1}"
+        parts.append(
+            f"[{current_label}][{png_idx}:v]overlay=(W-w)/2:H-h-360"
+            f":enable='between(t,{ph['start']:.3f},{ph['end']:.3f})'"
+            f"[{next_label}]"
+        )
+        current_label = next_label
+
+    if watermark_png:
+        wm_idx = 2 + len(phrase_pngs)
+        wm_start = max(0.0, duration - 1.5)
+        parts.append(
+            f"[{current_label}][{wm_idx}:v]overlay=(W-w)/2:H-h-110"
+            f":enable='gte(t,{wm_start:.2f})'"
+            "[vfinal]"
+        )
+        final_label = "vfinal"
+    else:
+        final_label = current_label
+
+    filtergraph = ";".join(parts)
+
+    cmd = [
+        "ffmpeg", "-y",
+        *inputs,
+        "-filter_complex", filtergraph,
+        "-map", f"[{final_label}]", "-map", "1:a",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        "-c:a", "aac", "-b:a", "128k",
+        "-t", f"{duration:.2f}",
+        "-shortest",
+        str(output_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"FFmpeg failed: {result.stderr[-1000:]}")
+    return output_path
