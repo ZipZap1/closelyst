@@ -137,18 +137,32 @@ with st.sidebar:
         st.caption("Lemon-Squeezy-Produkt-IDs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
 
-# ----- Onboarding: how it works -----
+# ----- Onboarding -----
 with st.expander("Wie funktioniert das?", expanded=False):
     st.markdown(
         """
-1. **Voiceover-Text eintippen** den die AI vorlesen soll
-2. **Stimme wählen** aus dem Dropdown (oder mit Pro deine eigene klonen)
-3. **Hintergrund wählen**: Stock-Video automatisch, eigenes Material, AI-Bild oder Lip-Sync (Pro)
-4. **Video generieren** klicken, fertig in 30-90 Sekunden
+1. Text eintippen
+2. Stimme wählen (Pro: eigene klonen)
+3. Hintergrund wählen
+4. Generieren
 
-Tab **Bild verbessern** ist ein eigener Pro-Tool: Bild rein, AI macht's schärfer und größer.
+Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
+
+# Optional demo-video and ProductHunt embed. Both are read from env so
+# they show up only when set; nothing leaks before launch.
+_demo_url = os.environ.get("DEMO_VIDEO_URL", "").strip()
+_ph_url = os.environ.get("PRODUCTHUNT_URL", "").strip()
+if _demo_url or _ph_url:
+    cols = st.columns([3, 1])
+    with cols[0]:
+        if _demo_url:
+            with st.expander("Demo: VoiceClip in Aktion (1 Min)", expanded=False):
+                st.video(_demo_url)
+    with cols[1]:
+        if _ph_url:
+            st.link_button("Auf ProductHunt", _ph_url, use_container_width=True)
 
 
 tab_video, tab_enhance = st.tabs(["Video erstellen", "Bild verbessern (Pro)"])
@@ -290,12 +304,13 @@ with tab_video:
         if not is_pro:
             st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
-    # Caption-Style anpassen (TikTok-Branding)
-    with st.expander("Caption-Style anpassen"):
+    # Caption-Style anpassen. Defaults sind TikTok-typisch: gelber Text,
+    # größerer Font, schwarze halbtransparente Box am unteren Rand.
+    with st.expander("Caption-Style anpassen (TikTok-Defaults)"):
         cs_col1, cs_col2 = st.columns(2)
         with cs_col1:
             caption_text_color = st.color_picker(
-                "Text-Farbe", value="#ffffff", key="caption_text_color"
+                "Text-Farbe", value="#fbbf24", key="caption_text_color"
             )
             caption_position = st.selectbox(
                 "Position",
@@ -310,7 +325,7 @@ with tab_video:
             caption_font_size = st.select_slider(
                 "Font-Größe",
                 options=[48, 56, 64, 72, 80, 96],
-                value=64,
+                value=80,
                 key="caption_font_size",
             )
         caption_bg_alpha = st.slider(
