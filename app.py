@@ -75,10 +75,14 @@ with st.sidebar:
     st.markdown("- Pay-per-Remove: 3 EUR")
     st.markdown("- Pro monatlich: 9 EUR (unlimited)")
 
-    remove_url = license_mod.get_checkout_url(
+    @st.cache_data(ttl=3600, show_spinner=False)
+    def _cached_buy_url(product_id):
+        return license_mod.get_buy_url(product_id)
+
+    remove_url = _cached_buy_url(
         os.environ.get("LEMONSQUEEZY_PRODUCT_REMOVE_WATERMARK", "")
     )
-    pro_url = license_mod.get_checkout_url(
+    pro_url = _cached_buy_url(
         os.environ.get("LEMONSQUEEZY_PRODUCT_PRO_MONTHLY", "")
     )
     if remove_url:

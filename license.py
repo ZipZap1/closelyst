@@ -27,21 +27,35 @@ def validate_license_key(license_key):
         return {"valid": False, "reason": str(e)}
 
 
-def get_checkout_url(product_id):
-    """Build a Lemon Squeezy hosted-checkout URL for a product.
+def get_buy_url(product_id):
+    """Fetch the canonical buy_now_url for a product via Lemon Squeezy API.
 
-    Format: https://<store-subdomain>.lemonsqueezy.com/buy/<product-id>
-
-    Accepts subdomain in any of these forms (auto-normalizes):
-      - "closelyst14"                              (preferred)
-      - "closelyst14.lemonsqueezy.com"
-      - "https://closelyst14.lemonsqueezy.com"
-      - "https://closelyst14.lemonsqueezy.com/"
+    Earlier versions tried to hand-build the URL from a store subdomain plus
+    product ID. That broke for stores with a custom domain and uses the wrong
+    path/format anyway (LS uses /checkout/buy/<variant-uuid>, not
+    /buy/<product-id>). Asking the API for the canonical URL avoids both
+    issues and follows whatever the store's current domain config is.
     """
-    subdomain = os.environ.get("LEMONSQUEEZY_STORE_SUBDOMAIN", "").strip()
-    if not subdomain or not product_id:
+    api_key = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
+    pid = str(product_id).strip()
+    if not api_key or not pid:
         return ""
-    subdomain = subdomain.removeprefix("https://").removeprefix("http://")
-    subdomain = subdomain.removesuffix("/")
-    subdomain = subdomain.removesuffix(".lemonsqueezy.com")
-    return f"https://{subdomain}.lemonsqueezy.com/buy/{product_id}"
+    try:
+        r = requests.get(
+            f"{API_BASE}/products/{pid}",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Accept": "application/vnd.api+json",
+            },
+            timeout=15,
+        )
+        if r.status_code == 200:
+            return (
+                r.json()
+                .get("data", {})
+                .get("attributes", {})
+                .get("buy_now_url", "")
+            )
+    except requests.RequestException:
+        pass
+    return ""
