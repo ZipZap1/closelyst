@@ -60,12 +60,24 @@ with st.sidebar:
             if result.get("valid"):
                 limit = result.get("activation_limit")
                 usage = result.get("activation_usage", 0) or 0
+                renews_at_iso = result.get("renews_at")
+                renews_at_de = ""
+                if renews_at_iso:
+                    try:
+                        from datetime import datetime
+                        renews_at_de = datetime.fromisoformat(
+                            renews_at_iso.replace("Z", "+00:00")
+                        ).strftime("%d.%m.%Y")
+                    except Exception:
+                        renews_at_de = renews_at_iso[:10]
                 spent = limit is not None and limit > 0 and usage >= limit
                 if spent:
                     if limit == 1:
                         st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
+                    elif renews_at_de:
+                        st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Bankabzug am {renews_at_de}.")
                     else:
-                        st.error(f"Pro-Limit ({limit} Generations diesen Zyklus) erreicht. Reset beim nächsten Billing.")
+                        st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Billing.")
                 else:
                     is_pro = True
                     is_one_shot_key = (limit == 1)
@@ -73,10 +85,13 @@ with st.sidebar:
                         st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
                     elif limit is not None:
                         pro_remaining = limit - usage
+                        msg = f"Pro aktiv. {pro_remaining} von {limit} Generations diesen Zyklus übrig."
+                        if renews_at_de:
+                            msg += f" Reset am {renews_at_de}."
                         if pro_remaining <= 10:
-                            st.warning(f"Pro aktiv. Nur noch {pro_remaining} Generations diesen Zyklus.")
+                            st.warning(msg)
                         else:
-                            st.success(f"Pro aktiv. {pro_remaining} Generations diesen Zyklus übrig.")
+                            st.success(msg)
                     else:
                         st.success("Pro aktiv. Unlimited Generations.")
             else:
