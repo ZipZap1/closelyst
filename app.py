@@ -173,21 +173,26 @@ tab_video, tab_enhance = st.tabs(["Video erstellen", "Bild verbessern (Pro)"])
 # Tab 1: Video erstellen
 # ============================================================
 with tab_video:
+    def _load_example():
+        # on_click callback runs before the next rerun, which is the
+        # only safe place to mutate a widget's session_state key after
+        # the widget has been instantiated.
+        st.session_state["voiceover_text"] = (
+            "Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst."
+        )
+
     text = st.text_area(
         "Was soll der Voiceover sagen?",
         height=130,
         placeholder="Z.B.: Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst.",
         key="voiceover_text",
     )
-    if st.button(
+    st.button(
         "Beispiel laden",
         help="Füllt das Textfeld mit einem Test-Beispiel.",
         key="example_btn",
-    ):
-        st.session_state["voiceover_text"] = (
-            "Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst."
-        )
-        st.rerun()
+        on_click=_load_example,
+    )
 
     # Pro-only: clone your own voice from an audio sample
     with st.expander("Pro: Eigene Stimme klonen (Voice Cloning)"):
