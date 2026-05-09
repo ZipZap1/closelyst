@@ -69,53 +69,66 @@ with st.sidebar:
     license_key_input = st.text_input(
         "License Key",
         type="password",
-        help="Hast du einen Key gekauft? Hier einfügen, um diese Session ohne Watermark zu exportieren.",
+        help="Hast du einen Key gekauft? Hier einfügen und Einlösen klicken.",
+        key="license_key_input",
     )
+
+    # Clear stored validation if the user changes the key
+    if st.session_state.get("validated_key") != license_key_input:
+        st.session_state.pop("license_validation", None)
+        st.session_state.pop("validated_key", None)
+
+    if st.button("Einlösen", disabled=not license_key_input, key="redeem_btn"):
+        with st.spinner("License prüfen..."):
+            st.session_state["license_validation"] = cached_validate(license_key_input)
+            st.session_state["validated_key"] = license_key_input
+
     is_pro = False
     is_one_shot_key = False
     pro_remaining = None
-    if license_key_input:
-        with st.spinner("License prüfen..."):
-            result = cached_validate(license_key_input)
-            if result.get("valid"):
-                limit = result.get("activation_limit")
-                usage = result.get("activation_usage", 0) or 0
-                renews_at_iso = result.get("renews_at")
-                renews_at_de = ""
-                if renews_at_iso:
-                    try:
-                        from datetime import datetime
-                        renews_at_de = datetime.fromisoformat(
-                            renews_at_iso.replace("Z", "+00:00")
-                        ).strftime("%d.%m.%Y")
-                    except Exception:
-                        renews_at_de = renews_at_iso[:10]
-                spent = limit is not None and limit > 0 and usage >= limit
-                if spent:
-                    if limit == 1:
-                        st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
-                    elif renews_at_de:
-                        st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Bankabzug am {renews_at_de}.")
-                    else:
-                        st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Billing.")
+    result = st.session_state.get("license_validation")
+    if result and license_key_input:
+        if result.get("valid"):
+            limit = result.get("activation_limit")
+            usage = result.get("activation_usage", 0) or 0
+            renews_at_iso = result.get("renews_at")
+            renews_at_de = ""
+            if renews_at_iso:
+                try:
+                    from datetime import datetime
+                    renews_at_de = datetime.fromisoformat(
+                        renews_at_iso.replace("Z", "+00:00")
+                    ).strftime("%d.%m.%Y")
+                except Exception:
+                    renews_at_de = renews_at_iso[:10]
+            spent = limit is not None and limit > 0 and usage >= limit
+            if spent:
+                if limit == 1:
+                    st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
+                elif renews_at_de:
+                    st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Bankabzug am {renews_at_de}.")
                 else:
-                    is_pro = True
-                    is_one_shot_key = (limit == 1)
-                    if is_one_shot_key:
-                        st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
-                    elif limit is not None:
-                        pro_remaining = limit - usage
-                        msg = f"Pro aktiv. {pro_remaining} von {limit} Generations diesen Zyklus übrig."
-                        if renews_at_de:
-                            msg += f" Reset am {renews_at_de}."
-                        if pro_remaining <= 10:
-                            st.warning(msg)
-                        else:
-                            st.success(msg)
-                    else:
-                        st.success("Pro aktiv. Watermark wird entfernt.")
+                    st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Billing.")
             else:
-                st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
+                is_pro = True
+                is_one_shot_key = (limit == 1)
+                if is_one_shot_key:
+                    st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
+                elif limit is not None:
+                    pro_remaining = limit - usage
+                    msg = f"Pro aktiv. {pro_remaining} von {limit} Generations diesen Zyklus übrig."
+                    if renews_at_de:
+                        msg += f" Reset am {renews_at_de}."
+                    if pro_remaining <= 10:
+                        st.warning(msg)
+                    else:
+                        st.success(msg)
+                else:
+                    st.success("Pro aktiv. Watermark wird entfernt.")
+        else:
+            st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
+    elif license_key_input:
+        st.caption("Klick Einlösen um den Key zu prüfen.")
 
     st.divider()
 
