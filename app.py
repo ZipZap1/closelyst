@@ -95,9 +95,9 @@ with st.sidebar:
         os.environ.get("LEMONSQUEEZY_PRODUCT_PRO_MONTHLY", "")
     )
     if remove_url:
-        st.link_button("3 EUR: Watermark entfernen", remove_url)
+        st.link_button("2,99 EUR: Watermark entfernen", remove_url)
     if pro_url:
-        st.link_button("9 EUR/Mo: Pro werden", pro_url)
+        st.link_button("8,99 EUR/Mo: Pro werden", pro_url)
     if not remove_url and not pro_url:
         st.caption("Lemon-Squeezy-Produkt-IDs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
@@ -200,7 +200,7 @@ if generate_btn:
                 else:
                     st.success("Pro-Export ohne Watermark.")
             else:
-                st.info("Watermark ist im Video. Fuer 3 EUR entfernen siehe Sidebar.")
+                st.info("Watermark ist im Video. Fuer 2,99 EUR entfernen siehe Sidebar.")
         except Exception as exc:
             st.error(f"Fehler: {exc}")
 
