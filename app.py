@@ -245,7 +245,7 @@ elif footage_mode == "AI: Lip-Sync auf mein Portrait-Video (Pro)":
         type=["mp4", "mov", "m4v"],
         accept_multiple_files=False,
     )
-    st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover (LatentSync). Dauert 30-90s, kostet ca. 7 Cent pro Generation.")
+    st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden.")
     if not is_pro:
         st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
