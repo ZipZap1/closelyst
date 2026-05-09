@@ -554,4 +554,4 @@ st.caption(
     "[Replicate](https://replicate.com) (Flux Schnell, Clarity Upscaler, LatentSync) "
     "und [Lemon Squeezy](https://www.lemonsqueezy.com) (Payments)."
 )
-st.caption("[Impressum](/Impressum) | [Datenschutz](/Datenschutz)")
+st.caption("[Impressum](/Impressum) | [Datenschutz](/Datenschutz) | [AGB](/AGB)")
