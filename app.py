@@ -187,6 +187,18 @@ generate_btn = st.button(
     type="primary",
     disabled=not ready_to_generate,
 )
+if not ready_to_generate:
+    _missing = []
+    if not text.strip():
+        _missing.append("Voiceover-Text eintippen")
+    if not selected_voice_id:
+        _missing.append("Stimme wählen")
+    if needs_upload and uploaded_media is None:
+        _missing.append("Datei hochladen")
+    if needs_pro and not is_pro:
+        _missing.append("Pro-Key in Sidebar eintragen")
+    if _missing:
+        st.caption("Noch nötig: " + ", ".join(_missing))
 
 # ----- Generate -----
 if generate_btn:
