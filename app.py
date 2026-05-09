@@ -9,8 +9,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 import streamlit as st
 
-# Load .env from this directory
+# Load .env from this directory (local dev). On Streamlit Cloud .env is absent,
+# secrets come via st.secrets. Mirror st.secrets into os.environ so the rest of
+# the modules can keep using os.environ.get(...) uniformly.
 load_dotenv(Path(__file__).parent / ".env")
+try:
+    for _key, _value in st.secrets.items():
+        if _value is not None and _key not in os.environ:
+            os.environ[_key] = str(_value)
+except (FileNotFoundError, KeyError, AttributeError):
+    pass
 
 import voice
 import stock
