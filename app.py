@@ -145,8 +145,9 @@ if footage_mode == "Eigenes Video oder Bild hochladen":
 elif footage_mode == "AI: Bild aus Text generieren (Pro)":
     ai_prompt_override = st.text_input(
         "Prompt (optional, leer = nutzt deinen Voiceover-Text als Prompt)",
-        placeholder="Z.B.: A solo founder coding at night, neon city background",
+        placeholder="Z.B.: Solo-Founder programmiert nachts, Neon-Stadt im Hintergrund",
     )
+    st.caption("Tipp: englische Prompts liefern oft schärfere Ergebnisse, weil das Modell auf englischen Beschreibungen trainiert ist.")
     if not is_pro:
         st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 elif footage_mode == "AI: Mein Bild verbessern (Pro)":
