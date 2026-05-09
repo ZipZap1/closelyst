@@ -31,8 +31,17 @@ def get_checkout_url(product_id):
     """Build a Lemon Squeezy hosted-checkout URL for a product.
 
     Format: https://<store-subdomain>.lemonsqueezy.com/buy/<product-id>
+
+    Accepts subdomain in any of these forms (auto-normalizes):
+      - "closelyst14"                              (preferred)
+      - "closelyst14.lemonsqueezy.com"
+      - "https://closelyst14.lemonsqueezy.com"
+      - "https://closelyst14.lemonsqueezy.com/"
     """
     subdomain = os.environ.get("LEMONSQUEEZY_STORE_SUBDOMAIN", "").strip()
     if not subdomain or not product_id:
         return ""
+    subdomain = subdomain.removeprefix("https://").removeprefix("http://")
+    subdomain = subdomain.removesuffix("/")
+    subdomain = subdomain.removesuffix(".lemonsqueezy.com")
     return f"https://{subdomain}.lemonsqueezy.com/buy/{product_id}"
