@@ -29,6 +29,7 @@ import voice
 import stock
 import compose
 import license as license_mod
+import ai_image
 
 _ASSETS = Path(__file__).parent / "assets"
 st.set_page_config(
@@ -118,27 +119,60 @@ elif voices_data:
 else:
     st.info("Keine Stimmen verfügbar.")
 
-# Footage source: auto stock vs user upload (video or image)
+# Footage source: auto stock, user upload, or AI
 footage_mode = st.radio(
     "Hintergrund",
-    options=["Auto: Stock-Footage von Pexels", "Eigenes Video oder Bild hochladen"],
-    horizontal=True,
+    options=[
+        "Auto: Stock-Footage von Pexels",
+        "Eigenes Video oder Bild hochladen",
+        "AI: Bild aus Text generieren (Pro)",
+        "AI: Mein Bild verbessern (Pro)",
+    ],
+    horizontal=False,
 )
 uploaded_media = None
+ai_prompt_override = ""
 if footage_mode == "Eigenes Video oder Bild hochladen":
     uploaded_media = st.file_uploader(
         "Datei (Video: .mp4 .mov / Bild: .jpg .png .webp, max 50 MB, wird auf 9:16 gecroppt)",
         type=["mp4", "mov", "m4v", "jpg", "jpeg", "png", "webp"],
         accept_multiple_files=False,
     )
-    if uploaded_media is not None:
-        if uploaded_media.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
-            st.caption("Bild erkannt: bekommt einen langsamen Zoom (Ken-Burns) damit's lebendig wirkt.")
+    if uploaded_media is not None and uploaded_media.name.lower().endswith(
+        (".jpg", ".jpeg", ".png", ".webp")
+    ):
+        st.caption("Bild erkannt, bekommt einen langsamen Zoom (Ken-Burns).")
+elif footage_mode == "AI: Bild aus Text generieren (Pro)":
+    ai_prompt_override = st.text_input(
+        "Prompt (optional, leer = nutzt deinen Voiceover-Text als Prompt)",
+        placeholder="Z.B.: A solo founder coding at night, neon city background",
+    )
+    if not is_pro:
+        st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+elif footage_mode == "AI: Mein Bild verbessern (Pro)":
+    uploaded_media = st.file_uploader(
+        "Bild zum Verbessern (.jpg .png .webp, max 10 MB)",
+        type=["jpg", "jpeg", "png", "webp"],
+        accept_multiple_files=False,
+    )
+    st.caption("Bild wird via Real-ESRGAN auf 2x Auflösung skaliert und entrauscht.")
+    if not is_pro:
+        st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
+# Determine if we have what we need to enable Generate
+needs_upload = footage_mode in (
+    "Eigenes Video oder Bild hochladen",
+    "AI: Mein Bild verbessern (Pro)",
+)
+needs_pro = footage_mode in (
+    "AI: Bild aus Text generieren (Pro)",
+    "AI: Mein Bild verbessern (Pro)",
+)
 ready_to_generate = bool(
     text.strip()
     and selected_voice_id
-    and (footage_mode == "Auto: Stock-Footage von Pexels" or uploaded_media is not None)
+    and (not needs_upload or uploaded_media is not None)
+    and (not needs_pro or is_pro)
 )
 generate_btn = st.button(
     "Video generieren",
@@ -172,9 +206,21 @@ if generate_btn:
             audio_path = tmp_path / "voice.mp3"
             audio_path.write_bytes(audio_bytes)
 
-            if uploaded_media is not None:
+            if footage_mode == "AI: Bild aus Text generieren (Pro)":
+                progress.progress(40, text="AI-Bild wird generiert (Flux Schnell)...")
+                prompt = ai_prompt_override.strip() or text.strip()
+                video_path = tmp_path / "ai.png"
+                ai_image.generate_image(prompt, video_path, aspect_ratio="9:16")
+            elif footage_mode == "AI: Mein Bild verbessern (Pro)":
+                progress.progress(35, text="Bild wird hochgeladen...")
+                ext = Path(uploaded_media.name).suffix.lower() or ".png"
+                raw_path = tmp_path / f"raw{ext}"
+                raw_path.write_bytes(uploaded_media.getvalue())
+                progress.progress(45, text="Bild wird via Real-ESRGAN verbessert...")
+                video_path = tmp_path / "enhanced.png"
+                ai_image.enhance_image(raw_path, video_path, scale=2)
+            elif uploaded_media is not None:
                 progress.progress(40, text="Hochgeladenes Material wird verarbeitet...")
-                # Preserve extension so compose.py can detect image vs video
                 ext = Path(uploaded_media.name).suffix.lower() or ".mp4"
                 video_path = tmp_path / f"upload{ext}"
                 video_path.write_bytes(uploaded_media.getvalue())
