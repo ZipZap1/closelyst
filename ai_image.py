@@ -18,8 +18,7 @@ FLUX_SCHNELL = "black-forest-labs/flux-schnell"
 # than the older Real-ESRGAN. Costs ~2-3x more per run but quality jump is
 # significant for portrait photos and product shots.
 CLARITY_UPSCALER = "philz1337x/clarity-upscaler"
-WAV2LIP = "arielreplicate/wav2lip"
-LATENTSYNC = "bytedance/latentsync"  # higher quality fallback if Wav2Lip output is too poor
+LATENTSYNC = "bytedance/latentsync"
 
 
 def _token():
@@ -186,29 +185,16 @@ def _lipsync_via_sync(video_in_path, audio_path, out_path):
 
 
 def _lipsync_via_replicate(video_in_path, audio_path, out_path):
-    """Replicate Wav2Lip default. Cheapest open-source lipsync option
-    (~$0.02 per generation). Quality is decent for short TikTok clips
-    but mouth area can be slightly blurry on close-ups.
-
-    Set LIPSYNC_MODEL=latentsync in env to use bytedance/latentsync
-    instead (~$0.07/gen, better quality).
-    """
-    use_latentsync = os.environ.get("LIPSYNC_MODEL", "wav2lip").lower() == "latentsync"
+    """Replicate bytedance/latentsync. The only video+audio lip-sync model
+    currently hosted on Replicate (Wav2Lip variants returned 404 when we
+    tried to swap). ~$0.07 per generation."""
     video_url = _upload_to_replicate(video_in_path, "video/mp4")
     audio_url = _upload_to_replicate(audio_path, "audio/mpeg")
 
-    if use_latentsync:
-        model_path = LATENTSYNC
-        body = {"input": {"video": video_url, "audio": audio_url}}
-    else:
-        model_path = WAV2LIP
-        # Wav2Lip uses "face" for the video input and "audio" for the audio.
-        body = {"input": {"face": video_url, "audio": audio_url}}
-
     r = requests.post(
-        f"{API_BASE}/models/{model_path}/predictions",
+        f"{API_BASE}/models/{LATENTSYNC}/predictions",
         headers=_headers(prefer_wait=True),
-        json=body,
+        json={"input": {"video": video_url, "audio": audio_url}},
         timeout=300,
     )
     r.raise_for_status()
@@ -217,7 +203,7 @@ def _lipsync_via_replicate(video_in_path, audio_path, out_path):
         data = _poll_until_done(data["id"], timeout=300)
     output = data.get("output")
     if not output:
-        raise RuntimeError(f"{model_path} returned no output")
+        raise RuntimeError("LatentSync returned no output")
     out_url = output if isinstance(output, str) else output[0]
     return _download(out_url, out_path)
 
