@@ -164,9 +164,20 @@ def _alignment_to_phrases(alignment, target_seconds=1.6, max_words=3):
     return phrases
 
 
+_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+
+
+def _is_image(path):
+    return Path(path).suffix.lower() in _IMAGE_SUFFIXES
+
+
 def compose(audio_path, video_path, output_path, tmp_dir,
             alignment=None, fallback_text="", with_watermark=True):
     """Render the final 1080x1920 portrait video.
+
+    Background can be either a video file (looped + center-cropped) or a
+    still image (looped with a slow Ken-Burns zoom so it doesn't feel
+    static). Detection is by file extension.
 
     If alignment is provided and non-empty, captions are word-synced.
     Otherwise falls back to a single static caption from fallback_text.
@@ -174,6 +185,7 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     ensure_ffmpeg()
     duration = get_audio_duration(audio_path)
     tmp_dir = Path(tmp_dir)
+    is_image_bg = _is_image(video_path)
 
     phrases = _alignment_to_phrases(alignment) if alignment else []
     if not phrases:
@@ -196,18 +208,41 @@ def compose(audio_path, video_path, output_path, tmp_dir,
         _render_text_png("Made with VoiceClip", watermark_png,
                          font_size=38, padding=16, max_width=900, bg_alpha=200)
 
-    # Build inputs: video, audio, captions, optional watermark
-    inputs = [
-        "-stream_loop", "-1", "-i", str(video_path),  # input 0
-        "-i", str(audio_path),                         # input 1
-    ]
+    # Build inputs: video/image, audio, captions, optional watermark
+    if is_image_bg:
+        # Single image looped at 25fps for the audio duration
+        inputs = [
+            "-loop", "1", "-framerate", "25", "-i", str(video_path),
+            "-i", str(audio_path),
+        ]
+    else:
+        inputs = [
+            "-stream_loop", "-1", "-i", str(video_path),
+            "-i", str(audio_path),
+        ]
     for png in phrase_pngs:
         inputs += ["-i", str(png)]
     if watermark_png:
         inputs += ["-i", str(watermark_png)]
 
-    # Filtergraph: scale video, then overlay each phrase, then watermark
-    parts = ["[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg]"]
+    # Filtergraph: prepare background, then overlay each phrase, then watermark.
+    # For images we apply a slow Ken-Burns zoom (zoompan) so the still has
+    # gentle motion. Pre-scale to a large canvas so zoompan has resolution
+    # to crop into without softening.
+    if is_image_bg:
+        total_frames = max(25, int(duration * 25))
+        zoom_target = 1.18  # final zoom factor at end of clip
+        zoom_step = (zoom_target - 1.0) / max(1, total_frames - 1)
+        bg_filter = (
+            "scale=2160:3840:force_original_aspect_ratio=increase,"
+            "crop=2160:3840,"
+            f"zoompan=z='1+{zoom_step:.6f}*on'"
+            f":x='iw/2-(iw/zoom)/2':y='ih/2-(ih/zoom)/2'"
+            f":d={total_frames}:s=1080x1920:fps=25"
+        )
+    else:
+        bg_filter = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
+    parts = [f"[0:v]{bg_filter}[bg]"]
     current_label = "bg"
     for i, ph in enumerate(phrases):
         png_idx = 2 + i

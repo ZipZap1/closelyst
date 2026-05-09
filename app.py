@@ -118,24 +118,27 @@ elif voices_data:
 else:
     st.info("Keine Stimmen verfügbar.")
 
-# Footage source: auto stock vs user upload
+# Footage source: auto stock vs user upload (video or image)
 footage_mode = st.radio(
-    "Hintergrund-Video",
-    options=["Auto: Stock-Footage von Pexels", "Eigenes Video hochladen"],
+    "Hintergrund",
+    options=["Auto: Stock-Footage von Pexels", "Eigenes Video oder Bild hochladen"],
     horizontal=True,
 )
-uploaded_video = None
-if footage_mode == "Eigenes Video hochladen":
-    uploaded_video = st.file_uploader(
-        "Video-Datei (.mp4, max 50 MB, beliebige Auflösung wird auf 9:16 gecroppt)",
-        type=["mp4", "mov", "m4v"],
+uploaded_media = None
+if footage_mode == "Eigenes Video oder Bild hochladen":
+    uploaded_media = st.file_uploader(
+        "Datei (Video: .mp4 .mov / Bild: .jpg .png .webp, max 50 MB, wird auf 9:16 gecroppt)",
+        type=["mp4", "mov", "m4v", "jpg", "jpeg", "png", "webp"],
         accept_multiple_files=False,
     )
+    if uploaded_media is not None:
+        if uploaded_media.name.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+            st.caption("Bild erkannt: bekommt einen langsamen Zoom (Ken-Burns) damit's lebendig wirkt.")
 
 ready_to_generate = bool(
     text.strip()
     and selected_voice_id
-    and (footage_mode == "Auto: Stock-Footage von Pexels" or uploaded_video is not None)
+    and (footage_mode == "Auto: Stock-Footage von Pexels" or uploaded_media is not None)
 )
 generate_btn = st.button(
     "Video generieren",
@@ -169,12 +172,15 @@ if generate_btn:
             audio_path = tmp_path / "voice.mp3"
             audio_path.write_bytes(audio_bytes)
 
-            video_path = tmp_path / "video.mp4"
-            if uploaded_video is not None:
-                progress.progress(40, text="Hochgeladenes Video wird verarbeitet...")
-                video_path.write_bytes(uploaded_video.getvalue())
+            if uploaded_media is not None:
+                progress.progress(40, text="Hochgeladenes Material wird verarbeitet...")
+                # Preserve extension so compose.py can detect image vs video
+                ext = Path(uploaded_media.name).suffix.lower() or ".mp4"
+                video_path = tmp_path / f"upload{ext}"
+                video_path.write_bytes(uploaded_media.getvalue())
             else:
                 progress.progress(40, text="Stock-Footage von Pexels suchen...")
+                video_path = tmp_path / "stock.mp4"
                 keywords = stock.extract_keywords(text)
                 query = " ".join(keywords) if keywords else "abstract background"
                 video_url = stock.pick_video_url(query)
