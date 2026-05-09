@@ -30,9 +30,14 @@ import stock
 import compose
 import license as license_mod
 
-st.set_page_config(page_title="VoiceClip", layout="centered")
+_ASSETS = Path(__file__).parent / "assets"
+st.set_page_config(
+    page_title="VoiceClip",
+    page_icon=str(_ASSETS / "icon.png"),
+    layout="centered",
+)
 
-st.title("VoiceClip")
+st.image(str(_ASSETS / "logo.svg"), width=260)
 st.caption(
     "Text rein. TikTok-ready Video raus. AI Voiceover plus Stock-Footage in unter einer Minute."
 )
