@@ -118,10 +118,29 @@ elif voices_data:
 else:
     st.info("Keine Stimmen verfügbar.")
 
+# Footage source: auto stock vs user upload
+footage_mode = st.radio(
+    "Hintergrund-Video",
+    options=["Auto: Stock-Footage von Pexels", "Eigenes Video hochladen"],
+    horizontal=True,
+)
+uploaded_video = None
+if footage_mode == "Eigenes Video hochladen":
+    uploaded_video = st.file_uploader(
+        "Video-Datei (.mp4, max 50 MB, beliebige Auflösung wird auf 9:16 gecroppt)",
+        type=["mp4", "mov", "m4v"],
+        accept_multiple_files=False,
+    )
+
+ready_to_generate = bool(
+    text.strip()
+    and selected_voice_id
+    and (footage_mode == "Auto: Stock-Footage von Pexels" or uploaded_video is not None)
+)
 generate_btn = st.button(
     "Video generieren",
     type="primary",
-    disabled=not (text.strip() and selected_voice_id),
+    disabled=not ready_to_generate,
 )
 
 # ----- Generate -----
@@ -150,17 +169,21 @@ if generate_btn:
             audio_path = tmp_path / "voice.mp3"
             audio_path.write_bytes(audio_bytes)
 
-            progress.progress(40, text="Stock-Footage von Pexels suchen...")
-            keywords = stock.extract_keywords(text)
-            query = " ".join(keywords) if keywords else "abstract background"
-            video_url = stock.pick_video_url(query)
-            if not video_url:
-                video_url = stock.pick_video_url("abstract background")
-            if not video_url:
-                st.error("Kein Stock-Video gefunden. Versuch einen anderen Text.")
-                st.stop()
-            video_path = tmp_path / "stock.mp4"
-            stock.download(video_url, video_path)
+            video_path = tmp_path / "video.mp4"
+            if uploaded_video is not None:
+                progress.progress(40, text="Hochgeladenes Video wird verarbeitet...")
+                video_path.write_bytes(uploaded_video.getvalue())
+            else:
+                progress.progress(40, text="Stock-Footage von Pexels suchen...")
+                keywords = stock.extract_keywords(text)
+                query = " ".join(keywords) if keywords else "abstract background"
+                video_url = stock.pick_video_url(query)
+                if not video_url:
+                    video_url = stock.pick_video_url("abstract background")
+                if not video_url:
+                    st.error("Kein Stock-Video gefunden. Versuch einen anderen Text.")
+                    st.stop()
+                stock.download(video_url, video_path)
 
             progress.progress(70, text="Video komponieren mit FFmpeg (synced captions)...")
             output_path = tmp_path / "out.mp4"
