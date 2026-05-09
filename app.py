@@ -71,9 +71,6 @@ with st.sidebar:
                 st.error(f"Ungueltig: {result.get('reason', 'unbekannt')}")
 
     st.divider()
-    st.markdown("**Pricing**")
-    st.markdown("- Pay-per-Remove: 3 EUR")
-    st.markdown("- Pro monatlich: 9 EUR (unlimited)")
 
     @st.cache_data(ttl=3600, show_spinner=False)
     def _cached_buy_url(product_id):
