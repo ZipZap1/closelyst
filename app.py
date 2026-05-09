@@ -161,6 +161,7 @@ elif footage_mode == "AI: Mein Bild verbessern (Pro)":
         st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
 # Determine if we have what we need to enable Generate
+is_image_only_mode = footage_mode == "AI: Mein Bild verbessern (Pro)"
 needs_upload = footage_mode in (
     "Eigenes Video oder Bild hochladen",
     "AI: Mein Bild verbessern (Pro)",
@@ -169,9 +170,10 @@ needs_pro = footage_mode in (
     "AI: Bild aus Text generieren (Pro)",
     "AI: Mein Bild verbessern (Pro)",
 )
+needs_text_voice = not is_image_only_mode  # image-only enhance skips voiceover entirely
 ready_to_generate = bool(
-    text.strip()
-    and selected_voice_id
+    (not needs_text_voice or text.strip())
+    and (not needs_text_voice or selected_voice_id)
     and (not needs_upload or uploaded_media is not None)
     and (not needs_pro or is_pro)
 )
@@ -180,7 +182,7 @@ _button_label = {
     "Auto: Stock-Footage von Pexels": "Video generieren",
     "Eigenes Video oder Bild hochladen": "Video aus Upload generieren",
     "AI: Bild aus Text generieren (Pro)": "AI-Bild + Video generieren",
-    "AI: Mein Bild verbessern (Pro)": "Bild verbessern + Video generieren",
+    "AI: Mein Bild verbessern (Pro)": "Bild verbessern",
 }.get(footage_mode, "Video generieren")
 generate_btn = st.button(
     _button_label,
@@ -189,9 +191,9 @@ generate_btn = st.button(
 )
 if not ready_to_generate:
     _missing = []
-    if not text.strip():
+    if needs_text_voice and not text.strip():
         _missing.append("Voiceover-Text eintippen")
-    if not selected_voice_id:
+    if needs_text_voice and not selected_voice_id:
         _missing.append("Stimme wählen")
     if needs_upload and uploaded_media is None:
         _missing.append("Datei hochladen")
@@ -202,23 +204,54 @@ if not ready_to_generate:
 
 # ----- Generate -----
 if generate_btn:
-    # If a one-shot Pay-per-Remove key was entered, consume one activation
-    # before rendering. If the slot is already used, fall back to watermark.
-    strip_watermark = is_pro
+    # Consume one activation up front for one-shot keys, regardless of mode
     consumed_one_shot = False
+    activation_blocked = False
     if is_pro and is_one_shot_key:
         instance = f"voiceclip-{uuid.uuid4().hex[:8]}"
         activation = license_mod.activate_license_key(license_key_input, instance)
         if activation.get("activated"):
             consumed_one_shot = True
         else:
-            strip_watermark = False
-            st.warning("Key bereits verbraucht. Dieses Video bekommt Watermark.")
+            activation_blocked = True
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         progress = st.progress(0, text="Starte...")
         try:
+            # ----- Image-only enhancement path (no voiceover, no compose) -----
+            if is_image_only_mode:
+                if activation_blocked:
+                    st.warning("Key bereits verbraucht. Bild-Enhance trotzdem ohne Watermark, aber kein neuer Slot konsumiert.")
+                progress.progress(20, text="Bild wird hochgeladen...")
+                ext = Path(uploaded_media.name).suffix.lower() or ".png"
+                raw_path = tmp_path / f"raw{ext}"
+                raw_path.write_bytes(uploaded_media.getvalue())
+
+                progress.progress(40, text="Bild wird via Real-ESRGAN verbessert (kann 10-30s dauern)...")
+                enhanced_path = tmp_path / "enhanced.png"
+                ai_image.enhance_image(raw_path, enhanced_path, scale=2)
+
+                progress.progress(100, text="Fertig.")
+                img_bytes = enhanced_path.read_bytes()
+                st.image(img_bytes, caption="Verbessertes Bild (2x Auflösung)", use_column_width=True)
+                st.download_button(
+                    "Bild herunterladen",
+                    img_bytes,
+                    file_name="enhanced.png",
+                    mime="image/png",
+                )
+                if consumed_one_shot:
+                    st.success("Pro-Enhance fertig. Dein 1-Use-Key ist nun verbraucht.")
+                else:
+                    st.success("Pro-Enhance fertig.")
+                st.stop()
+
+            # ----- Standard video path (voiceover + compose) -----
+            strip_watermark = is_pro and not activation_blocked
+            if activation_blocked:
+                st.warning("Key bereits verbraucht. Dieses Video bekommt Watermark.")
+
             progress.progress(10, text="Voiceover generieren mit ElevenLabs (mit Timestamps)...")
             audio_bytes, alignment = voice.generate_voiceover_with_timestamps(
                 text.strip(), selected_voice_id
@@ -231,14 +264,6 @@ if generate_btn:
                 prompt = ai_prompt_override.strip() or text.strip()
                 video_path = tmp_path / "ai.png"
                 ai_image.generate_image(prompt, video_path, aspect_ratio="9:16")
-            elif footage_mode == "AI: Mein Bild verbessern (Pro)":
-                progress.progress(35, text="Bild wird hochgeladen...")
-                ext = Path(uploaded_media.name).suffix.lower() or ".png"
-                raw_path = tmp_path / f"raw{ext}"
-                raw_path.write_bytes(uploaded_media.getvalue())
-                progress.progress(45, text="Bild wird via Real-ESRGAN verbessert...")
-                video_path = tmp_path / "enhanced.png"
-                ai_image.enhance_image(raw_path, video_path, scale=2)
             elif uploaded_media is not None:
                 progress.progress(40, text="Hochgeladenes Material wird verarbeitet...")
                 ext = Path(uploaded_media.name).suffix.lower() or ".mp4"
