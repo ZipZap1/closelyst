@@ -175,8 +175,15 @@ ready_to_generate = bool(
     and (not needs_upload or uploaded_media is not None)
     and (not needs_pro or is_pro)
 )
+
+_button_label = {
+    "Auto: Stock-Footage von Pexels": "Video generieren",
+    "Eigenes Video oder Bild hochladen": "Video aus Upload generieren",
+    "AI: Bild aus Text generieren (Pro)": "AI-Bild + Video generieren",
+    "AI: Mein Bild verbessern (Pro)": "Bild verbessern + Video generieren",
+}.get(footage_mode, "Video generieren")
 generate_btn = st.button(
-    "Video generieren",
+    _button_label,
     type="primary",
     disabled=not ready_to_generate,
 )
