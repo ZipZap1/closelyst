@@ -4,6 +4,7 @@ Streamlit single-page app. Text in, 1080x1920 portrait video out.
 """
 import os
 import tempfile
+import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -61,12 +62,23 @@ with st.sidebar:
         help="Hast du einen Key gekauft? Hier einfuegen, um diese Session ohne Watermark zu exportieren.",
     )
     is_pro = False
+    is_one_shot_key = False
     if license_key_input:
         with st.spinner("License pruefen..."):
             result = license_mod.validate_license_key(license_key_input)
             if result.get("valid"):
-                st.success("Pro aktiviert. Watermark wird entfernt.")
-                is_pro = True
+                limit = result.get("activation_limit")
+                usage = result.get("activation_usage", 0)
+                spent = limit is not None and limit > 0 and usage >= limit
+                if spent:
+                    st.error("Key gueltig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro Monatlich.")
+                else:
+                    is_pro = True
+                    is_one_shot_key = (limit == 1)
+                    if is_one_shot_key:
+                        st.success("Pro aktiv. 1 Video ohne Watermark verfuegbar.")
+                    else:
+                        st.success("Pro aktiv. Watermark wird entfernt.")
             else:
                 st.error(f"Ungueltig: {result.get('reason', 'unbekannt')}")
 
@@ -125,6 +137,19 @@ generate_btn = st.button(
 
 # ----- Generate -----
 if generate_btn:
+    # If a one-shot Pay-per-Remove key was entered, consume one activation
+    # before rendering. If the slot is already used, fall back to watermark.
+    strip_watermark = is_pro
+    consumed_one_shot = False
+    if is_pro and is_one_shot_key:
+        instance = f"voiceclip-{uuid.uuid4().hex[:8]}"
+        activation = license_mod.activate_license_key(license_key_input, instance)
+        if activation.get("activated"):
+            consumed_one_shot = True
+        else:
+            strip_watermark = False
+            st.warning("Key bereits verbraucht. Dieses Video bekommt Watermark.")
+
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         progress = st.progress(0, text="Starte...")
@@ -157,7 +182,7 @@ if generate_btn:
                 tmp_dir=tmp_path,
                 alignment=alignment,
                 fallback_text=text.strip(),
-                with_watermark=not is_pro,
+                with_watermark=not strip_watermark,
             )
 
             progress.progress(100, text="Fertig.")
@@ -169,8 +194,11 @@ if generate_btn:
                 file_name="voiceclip.mp4",
                 mime="video/mp4",
             )
-            if is_pro:
-                st.success("Pro-Export ohne Watermark.")
+            if strip_watermark:
+                if consumed_one_shot:
+                    st.success("Pro-Export ohne Watermark. Dein 1-Video-Key ist nun verbraucht.")
+                else:
+                    st.success("Pro-Export ohne Watermark.")
             else:
                 st.info("Watermark ist im Video. Fuer 3 EUR entfernen siehe Sidebar.")
         except Exception as exc:

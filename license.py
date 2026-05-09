@@ -8,7 +8,12 @@ API_BASE = "https://api.lemonsqueezy.com/v1"
 def validate_license_key(license_key):
     """Validate a license key against Lemon Squeezy.
 
-    Returns dict: {"valid": bool, "reason": str (optional), "meta": dict (optional)}.
+    Returns dict: {
+        "valid": bool,
+        "activation_limit": int|None,   # None means unlimited
+        "activation_usage": int,
+        "reason": str (optional),
+    }
     """
     if not license_key or len(license_key.strip()) < 10:
         return {"valid": False, "reason": "Empty or too short"}
@@ -21,10 +26,47 @@ def validate_license_key(license_key):
         )
         if r.status_code == 200:
             data = r.json()
-            return {"valid": bool(data.get("valid", False)), "meta": data}
+            valid = bool(data.get("valid", False))
+            if not valid:
+                return {"valid": False, "reason": data.get("error") or "License invalid"}
+            lk = data.get("license_key") or {}
+            return {
+                "valid": True,
+                "activation_limit": lk.get("activation_limit"),
+                "activation_usage": lk.get("activation_usage", 0) or 0,
+                "key_id": lk.get("id"),
+            }
         return {"valid": False, "reason": f"HTTP {r.status_code}"}
     except requests.RequestException as e:
         return {"valid": False, "reason": str(e)}
+
+
+def activate_license_key(license_key, instance_name):
+    """Consume one activation slot. Returns dict: {"activated": bool, "reason": str}.
+
+    Used for one-shot keys (Watermark Remove). Each successful activation
+    increments activation_usage; once usage >= activation_limit, further
+    activations fail and the key is effectively spent.
+    """
+    if not license_key:
+        return {"activated": False, "reason": "Empty key"}
+    try:
+        r = requests.post(
+            f"{API_BASE}/licenses/activate",
+            data={
+                "license_key": license_key.strip(),
+                "instance_name": instance_name,
+            },
+            timeout=15,
+        )
+        if r.status_code in (200, 201):
+            data = r.json()
+            if data.get("activated"):
+                return {"activated": True}
+            return {"activated": False, "reason": data.get("error") or "Activation failed"}
+        return {"activated": False, "reason": f"HTTP {r.status_code}"}
+    except requests.RequestException as e:
+        return {"activated": False, "reason": str(e)}
 
 
 def get_buy_url(product_id):
