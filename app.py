@@ -53,22 +53,32 @@ with st.sidebar:
     )
     is_pro = False
     is_one_shot_key = False
+    pro_remaining = None
     if license_key_input:
         with st.spinner("License prüfen..."):
             result = license_mod.validate_license_key(license_key_input)
             if result.get("valid"):
                 limit = result.get("activation_limit")
-                usage = result.get("activation_usage", 0)
+                usage = result.get("activation_usage", 0) or 0
                 spent = limit is not None and limit > 0 and usage >= limit
                 if spent:
-                    st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
+                    if limit == 1:
+                        st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
+                    else:
+                        st.error(f"Pro-Limit ({limit} Generations diesen Zyklus) erreicht. Reset beim nächsten Billing.")
                 else:
                     is_pro = True
                     is_one_shot_key = (limit == 1)
                     if is_one_shot_key:
                         st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
+                    elif limit is not None:
+                        pro_remaining = limit - usage
+                        if pro_remaining <= 10:
+                            st.warning(f"Pro aktiv. Nur noch {pro_remaining} Generations diesen Zyklus.")
+                        else:
+                            st.success(f"Pro aktiv. {pro_remaining} Generations diesen Zyklus übrig.")
                     else:
-                        st.success("Pro aktiv. Watermark wird entfernt.")
+                        st.success("Pro aktiv. Unlimited Generations.")
             else:
                 st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
 
@@ -98,6 +108,54 @@ text = st.text_area(
     placeholder="Z.B.: Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst.",
 )
 
+# Pro-only: clone your own voice from an audio sample
+with st.expander("Pro: Eigene Stimme klonen (Voice Cloning)"):
+    if not is_pro:
+        st.caption("Pro-only Feature. Trag oben einen Pro-Key ein um deine Stimme zu klonen.")
+    else:
+        st.caption(
+            "Lade ein Audio-Sample (30+ Sek, klar gesprochen, kein Hintergrund-Lärm). "
+            "ElevenLabs klont die Stimme, du kannst sie sofort als Voice im Dropdown wählen. "
+            "Verbraucht einen Slot in deinem ElevenLabs-Account."
+        )
+        clone_col1, clone_col2 = st.columns([2, 1])
+        with clone_col1:
+            voice_sample = st.file_uploader(
+                "Audio-Sample (.mp3 .wav, 30+ Sek)",
+                type=["mp3", "wav", "m4a"],
+                key="voice_sample_uploader",
+                accept_multiple_files=False,
+            )
+        with clone_col2:
+            clone_name = st.text_input("Name", value="Meine Stimme", key="voice_clone_name")
+        if st.button("Stimme klonen", disabled=not voice_sample):
+            with st.spinner("Stimme wird geklont (10-30s)..."):
+                try:
+                    # Free up previous slot if user clones again in same session
+                    prev_id = st.session_state.get("custom_voice_id")
+                    if prev_id:
+                        voice.delete_voice(prev_id)
+                    new_id = voice.clone_voice(
+                        voice_sample.getvalue(),
+                        clone_name.strip() or "Meine Stimme",
+                        file_name=voice_sample.name,
+                    )
+                    st.session_state["custom_voice_id"] = new_id
+                    st.session_state["custom_voice_name"] = clone_name.strip() or "Meine Stimme"
+                    cached_voices.clear()  # bust voice list cache
+                    st.success(f"Stimme '{clone_name}' geklont. Wähl sie jetzt im Dropdown.")
+                except Exception as exc:
+                    # ElevenLabs returns 401 if no clone slots, 422 for bad audio, etc.
+                    msg = str(exc)
+                    resp = getattr(exc, "response", None)
+                    if resp is not None:
+                        try:
+                            j = resp.json()
+                            msg = j.get("detail", {}).get("message") or j.get("detail") or msg
+                        except Exception:
+                            pass
+                    st.error(f"Klonen fehlgeschlagen: {msg}")
+
 # Voice picker (cached so we don't hammer ElevenLabs on every rerun)
 @st.cache_data(ttl=3600, show_spinner=False)
 def cached_voices():
@@ -114,6 +172,12 @@ if isinstance(voices_data, dict) and "_error" in voices_data:
     st.warning(f"Voices nicht geladen: {voices_data['_error']}")
 elif voices_data:
     voice_options = {f"{v['name']} ({v['category']})": v["voice_id"] for v in voices_data}
+    # Prepend cloned voice if available so it sits at the top of the dropdown
+    custom_id = st.session_state.get("custom_voice_id")
+    custom_name = st.session_state.get("custom_voice_name")
+    if custom_id and custom_name:
+        custom_label = f"[Eigene] {custom_name}"
+        voice_options = {custom_label: custom_id, **voice_options}
     label = st.selectbox("Stimme", list(voice_options.keys()))
     selected_voice_id = voice_options[label]
 else:
@@ -217,14 +281,17 @@ if not ready_to_generate:
 
 # ----- Generate -----
 if generate_btn:
-    # Consume one activation up front for one-shot keys, regardless of mode
+    # Every Pro key consumes one activation per generation. Pay-per-Remove
+    # has limit=1 so it spends after one shot. Pro Monthly has limit=N
+    # (e.g. 100 per billing cycle) so heavy users hit a cap that protects
+    # the unit economics from runaway API costs.
     consumed_one_shot = False
     activation_blocked = False
-    if is_pro and is_one_shot_key:
+    if is_pro:
         instance = f"voiceclip-{uuid.uuid4().hex[:8]}"
         activation = license_mod.activate_license_key(license_key_input, instance)
         if activation.get("activated"):
-            consumed_one_shot = True
+            consumed_one_shot = is_one_shot_key
         else:
             activation_blocked = True
 
