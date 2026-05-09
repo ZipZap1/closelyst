@@ -24,7 +24,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 # Fill in ELEVENLABS_API_KEY and PEXELS_API_KEY in .env
-streamlit run app.py
+streamlit run Hauptseite.py
 ```
 
 ## Deployment

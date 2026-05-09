@@ -30,7 +30,7 @@ cp .env.example .env
 ## Lokal starten
 
 ```bash
-streamlit run app.py
+streamlit run Hauptseite.py
 ```
 
 Browser oeffnet sich auf http://localhost:8501.
@@ -44,7 +44,7 @@ Browser oeffnet sich auf http://localhost:8501.
 ## Deployment auf Streamlit Cloud
 
 1. Code ins Git pushen (Repo: closelyst/voiceclip oder eigene Repo). Falls VoiceClip allein im Subordner unter closelyst-Repo liegt, separates Repo erstellen oder Streamlit Cloud-Pfad-Setting nutzen
-2. share.streamlit.io oeffnen, "New app", Repo auswaehlen, `app.py` als entry
+2. share.streamlit.io oeffnen, "New app", Repo auswaehlen, `Hauptseite.py` als entry
 3. Secrets eintragen (gleicher Inhalt wie .env, im UI unter "Advanced settings")
 4. Deploy
 
@@ -70,7 +70,7 @@ Streamlit Cloud installiert dann ffmpeg auf der VM beim Build.
 projects/voiceclip/
 ├── README.md             # Strategie / Plan / Roadmap
 ├── BUILD.md              # Diese Datei (Setup, Run, Deploy)
-├── app.py                # Streamlit UI, Glue-Code
+├── Hauptseite.py         # Streamlit UI, Glue-Code
 ├── voice.py              # ElevenLabs Wrapper
 ├── stock.py              # Pexels Wrapper plus Keyword-Extraktion
 ├── compose.py            # FFmpeg Compose plus Watermark

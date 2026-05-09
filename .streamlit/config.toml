@@ -3,6 +3,12 @@
 # for Streamlit Cloud free tier when combined with FFmpeg processing.
 maxUploadSize = 50
 
+[browser]
+# Disable Streamlit's default usage telemetry to Snowflake. Without
+# this we'd need a TDDDG cookie consent banner because the analytics
+# call isn't "strictly necessary".
+gatherUsageStats = false
+
 [theme]
 # Indigo-violet-pink brand palette, matching assets/logo.svg.
 # Light theme so the gradient logo and captions stay readable.

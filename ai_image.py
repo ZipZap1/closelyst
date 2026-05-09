@@ -14,11 +14,11 @@ import requests
 
 API_BASE = "https://api.replicate.com/v1"
 FLUX_SCHNELL = "black-forest-labs/flux-schnell"
-# Clarity Upscaler is a Stable-Diffusion-based upscaler with sharper output
-# than the older Real-ESRGAN. Costs ~2-3x more per run but quality jump is
-# significant for portrait photos and product shots.
-CLARITY_UPSCALER = "philz1337x/clarity-upscaler"
-LATENTSYNC = "bytedance/latentsync"
+# Clarity Upscaler and LatentSync are not "official" Replicate models, so
+# the /v1/models/{owner}/{name}/predictions shortcut returns 404. We pin a
+# version hash and POST to /v1/predictions instead.
+CLARITY_UPSCALER_VERSION = "dfad41707589d68ecdccd1dfa600d55a208f9310748e44bfe35b4a6291453d5e"
+LATENTSYNC_VERSION = "637ce1919f807ca20da3a448ddc2743535d2853649574cd52a933120e9b9e293"
 
 
 def _token():
@@ -192,9 +192,12 @@ def _lipsync_via_replicate(video_in_path, audio_path, out_path):
     audio_url = _upload_to_replicate(audio_path, "audio/mpeg")
 
     r = requests.post(
-        f"{API_BASE}/models/{LATENTSYNC}/predictions",
+        f"{API_BASE}/predictions",
         headers=_headers(prefer_wait=True),
-        json={"input": {"video": video_url, "audio": audio_url}},
+        json={
+            "version": LATENTSYNC_VERSION,
+            "input": {"video": video_url, "audio": audio_url},
+        },
         timeout=300,
     )
     r.raise_for_status()
@@ -237,16 +240,17 @@ def enhance_image(in_path, out_path, scale=2):
         data_uri = f"data:image/{ext};base64,{b64}"
 
     r = requests.post(
-        f"{API_BASE}/models/{CLARITY_UPSCALER}/predictions",
+        f"{API_BASE}/predictions",
         headers=_headers(prefer_wait=True),
         json={
+            "version": CLARITY_UPSCALER_VERSION,
             "input": {
                 "image": data_uri,
                 "scale_factor": scale,
                 "creativity": 0.3,
                 "resemblance": 0.65,
                 "output_format": "png",
-            }
+            },
         },
         timeout=180,
     )

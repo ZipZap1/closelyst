@@ -547,4 +547,11 @@ with tab_enhance:
 
 # ----- Footer -----
 st.divider()
-st.caption("VoiceClip. closelyst. MVP-Version. Stock-Footage von [Pexels](https://www.pexels.com).")
+st.caption(
+    "VoiceClip. closelyst. MVP-Version. "
+    "Powered by [ElevenLabs](https://elevenlabs.io) (Voiceover, Voice-Cloning), "
+    "[Pexels](https://www.pexels.com) (Stock-Footage), "
+    "[Replicate](https://replicate.com) (Flux Schnell, Clarity Upscaler, LatentSync) "
+    "und [Lemon Squeezy](https://www.lemonsqueezy.com) (Payments)."
+)
+st.caption("[Impressum](/Impressum) | [Datenschutz](/Datenschutz)")
