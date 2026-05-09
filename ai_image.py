@@ -119,26 +119,81 @@ def _upload_to_replicate(file_path, content_type):
     return url
 
 
-def lipsync_video(video_in_path, audio_path, out_path):
-    """Sync the lips of the person in video_in_path to audio_path's voice.
+SYNC_API_BASE = "https://api.sync.so"
+SYNC_MODEL = "lipsync-2"  # general model; "lipsync-2-pro" for premium
 
-    Uses bytedance/latentsync via Replicate. The model returns a new video
-    file with lip movements aligned to the audio. Uses the file-upload
-    endpoint for both inputs because base64 data URIs are too heavy for
-    typical 5-30s phone videos.
-    """
+
+def _lipsync_via_sync(video_in_path, audio_path, out_path):
+    """Sync.so /v2/generate path. Uploads files via Replicate first to get
+    public URLs, then posts a JSON job to sync.so and polls for completion.
+    Cleaner than guessing sync.so's multipart endpoint shape."""
+    api_key = os.environ.get("SYNC_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("SYNC_API_KEY not set.")
+
+    video_url = _upload_to_replicate(video_in_path, "video/mp4")
+    audio_url = _upload_to_replicate(audio_path, "audio/mpeg")
+
+    r = requests.post(
+        f"{SYNC_API_BASE}/v2/generate",
+        headers={"x-api-key": api_key, "Content-Type": "application/json"},
+        json={
+            "model": SYNC_MODEL,
+            "input": [
+                {"type": "video", "url": video_url},
+                {"type": "audio", "url": audio_url},
+            ],
+        },
+        timeout=120,
+    )
+    r.raise_for_status()
+    job = r.json()
+    job_id = job.get("id")
+    if not job_id:
+        raise RuntimeError(f"sync.so returned no job id: {job}")
+
+    deadline = time.time() + 300
+    while time.time() < deadline:
+        time.sleep(3)
+        s = requests.get(
+            f"{SYNC_API_BASE}/v2/generate/{job_id}",
+            headers={"x-api-key": api_key},
+            timeout=30,
+        )
+        s.raise_for_status()
+        job = s.json()
+        status = (job.get("status") or "").lower()
+        if status in ("completed", "succeeded", "done"):
+            output = job.get("output") or job.get("outputUrl") or job.get("result")
+            if isinstance(output, dict):
+                video_url = (
+                    output.get("video_url")
+                    or output.get("videoUrl")
+                    or output.get("url")
+                    or output.get("video")
+                )
+            elif isinstance(output, str):
+                video_url = output
+            else:
+                video_url = None
+            if not video_url:
+                raise RuntimeError(f"sync.so done but no output URL: {job}")
+            return _download(video_url, out_path)
+        if status in ("failed", "error", "cancelled", "canceled"):
+            raise RuntimeError(f"sync.so {status}: {job.get('error') or job}")
+    raise RuntimeError("sync.so prediction timed out")
+
+
+def _lipsync_via_replicate(video_in_path, audio_path, out_path):
+    """Replicate bytedance/latentsync fallback. Used when SYNC_API_KEY
+    is not set."""
     video_url = _upload_to_replicate(video_in_path, "video/mp4")
     audio_url = _upload_to_replicate(audio_path, "audio/mpeg")
 
     r = requests.post(
         f"{API_BASE}/models/{LATENTSYNC}/predictions",
         headers=_headers(prefer_wait=True),
-        json={
-            "input": {
-                "video": video_url,
-                "audio": audio_url,
-            }
-        },
+        json={"input": {"video": video_url, "audio": audio_url}},
         timeout=300,
     )
     r.raise_for_status()
@@ -150,6 +205,18 @@ def lipsync_video(video_in_path, audio_path, out_path):
         raise RuntimeError("LatentSync returned no output")
     out_url = output if isinstance(output, str) else output[0]
     return _download(out_url, out_path)
+
+
+def lipsync_video(video_in_path, audio_path, out_path):
+    """Sync the lips of the person in video_in_path to audio_path's voice.
+
+    Routes to sync.so when SYNC_API_KEY is configured (better quality,
+    pay-per-use on a separate account), otherwise falls back to Replicate
+    bytedance/latentsync (uses the existing Replicate token).
+    """
+    if os.environ.get("SYNC_API_KEY", "").strip():
+        return _lipsync_via_sync(video_in_path, audio_path, out_path)
+    return _lipsync_via_replicate(video_in_path, audio_path, out_path)
 
 
 def enhance_image(in_path, out_path, scale=2):
