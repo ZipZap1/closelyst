@@ -2,3 +2,12 @@
 # Cap user uploads to 50 MB. Default is 200 MB which is too generous
 # for Streamlit Cloud free tier when combined with FFmpeg processing.
 maxUploadSize = 50
+
+[theme]
+# Indigo-violet-pink brand palette, matching assets/logo.svg.
+# Light theme so the gradient logo and captions stay readable.
+primaryColor = "#8b5cf6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#0f172a"
+font = "sans serif"

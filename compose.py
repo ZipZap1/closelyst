@@ -58,8 +58,26 @@ def _find_font(size):
     return ImageFont.load_default()
 
 
-def _render_text_png(text, out_path, font_size=46, padding=18, max_width=940, bg_alpha=190):
-    """Render text into a transparent PNG with semi-transparent background box."""
+def _hex_to_rgb(hex_color):
+    """Accept #RRGGBB or RRGGBB. Returns (R, G, B). Falls back to white."""
+    if not hex_color:
+        return (255, 255, 255)
+    h = hex_color.lstrip("#")
+    if len(h) != 6:
+        return (255, 255, 255)
+    try:
+        return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (255, 255, 255)
+
+
+def _render_text_png(text, out_path, font_size=46, padding=18, max_width=940,
+                     bg_alpha=190, text_color="#ffffff", bg_color="#000000"):
+    """Render text into a transparent PNG with semi-transparent background box.
+
+    text_color and bg_color accept hex strings ("#ffffff"). bg_alpha 0-255
+    controls box opacity, 0 = no box.
+    """
     font = _find_font(font_size)
     temp = Image.new("RGBA", (1, 1))
     measure = ImageDraw.Draw(temp)
@@ -93,12 +111,15 @@ def _render_text_png(text, out_path, font_size=46, padding=18, max_width=940, bg
 
     img = Image.new("RGBA", (img_width, img_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    draw.rectangle([0, 0, img_width, img_height], fill=(0, 0, 0, bg_alpha))
+    if bg_alpha > 0:
+        bg_rgb = _hex_to_rgb(bg_color)
+        draw.rectangle([0, 0, img_width, img_height], fill=(*bg_rgb, bg_alpha))
 
+    text_rgb = _hex_to_rgb(text_color)
     y = padding
     for line, lw, lh in zip(lines, line_widths, line_heights):
         x = (img_width - lw) // 2
-        draw.text((x, y), line, fill=(255, 255, 255, 255), font=font)
+        draw.text((x, y), line, fill=(*text_rgb, 255), font=font)
         y += lh + line_spacing
 
     img.save(out_path, "PNG")
@@ -171,8 +192,18 @@ def _is_image(path):
     return Path(path).suffix.lower() in _IMAGE_SUFFIXES
 
 
+_CAPTION_Y_BY_POSITION = {
+    # FFmpeg overlay: H=video_height (1920), h=overlay_height
+    # We render the overlay vertically anchored to one of three zones.
+    "bottom": "H-h-220",
+    "center": "(H-h)/2",
+    "top": "220",
+}
+
+
 def compose(audio_path, video_path, output_path, tmp_dir,
-            alignment=None, fallback_text="", with_watermark=True):
+            alignment=None, fallback_text="", with_watermark=True,
+            caption_style=None):
     """Render the final 1080x1920 portrait video.
 
     Background can be either a video file (looped + center-cropped) or a
@@ -181,11 +212,27 @@ def compose(audio_path, video_path, output_path, tmp_dir,
 
     If alignment is provided and non-empty, captions are word-synced.
     Otherwise falls back to a single static caption from fallback_text.
+
+    caption_style is a dict with optional keys:
+      - text_color (hex, default "#ffffff")
+      - bg_color   (hex, default "#000000")
+      - bg_alpha   (0-255, default 200)
+      - font_size  (px, default 64)
+      - position   ("bottom"|"center"|"top", default "bottom")
     """
     ensure_ffmpeg()
     duration = get_audio_duration(audio_path)
     tmp_dir = Path(tmp_dir)
     is_image_bg = _is_image(video_path)
+    style = {
+        "text_color": "#ffffff",
+        "bg_color": "#000000",
+        "bg_alpha": 200,
+        "font_size": 64,
+        "position": "bottom",
+    }
+    if caption_style:
+        style.update({k: v for k, v in caption_style.items() if v is not None})
 
     phrases = _alignment_to_phrases(alignment) if alignment else []
     if not phrases:
@@ -199,7 +246,16 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     phrase_pngs = []
     for i, ph in enumerate(phrases):
         png = tmp_dir / f"caption_{i}.png"
-        _render_text_png(ph["text"], png, font_size=64, padding=22, max_width=900, bg_alpha=200)
+        _render_text_png(
+            ph["text"],
+            png,
+            font_size=style["font_size"],
+            padding=22,
+            max_width=900,
+            bg_alpha=style["bg_alpha"],
+            text_color=style["text_color"],
+            bg_color=style["bg_color"],
+        )
         phrase_pngs.append(png)
 
     watermark_png = None
@@ -244,11 +300,12 @@ def compose(audio_path, video_path, output_path, tmp_dir,
         bg_filter = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
     parts = [f"[0:v]{bg_filter}[bg]"]
     current_label = "bg"
+    caption_y_expr = _CAPTION_Y_BY_POSITION.get(style["position"], _CAPTION_Y_BY_POSITION["bottom"])
     for i, ph in enumerate(phrases):
         png_idx = 2 + i
         next_label = f"v{i+1}"
         parts.append(
-            f"[{current_label}][{png_idx}:v]overlay=(W-w)/2:H-h-360"
+            f"[{current_label}][{png_idx}:v]overlay=(W-w)/2:{caption_y_expr}"
             f":enable='between(t,{ph['start']:.3f},{ph['end']:.3f})'"
             f"[{next_label}]"
         )

@@ -136,6 +136,22 @@ with st.sidebar:
     if not remove_url and not pro_url:
         st.caption("Lemon-Squeezy-Produkt-IDs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
+    # Generation history (in-session, max 5)
+    _history = st.session_state.get("history", [])
+    if _history:
+        st.divider()
+        st.subheader("Letzte Generations")
+        for i, item in enumerate(_history):
+            kind_emoji = "Video" if item["kind"] == "video" else "Bild"
+            st.caption(f"{item['ts']} - {kind_emoji} - {item['label']}")
+            st.download_button(
+                "Erneut herunterladen",
+                item["bytes"],
+                file_name=item["filename"],
+                mime=item["mime"],
+                key=f"hist_dl_{i}",
+            )
+
 
 # ----- Onboarding: how it works -----
 with st.expander("Wie funktioniert das?", expanded=False):
@@ -285,6 +301,34 @@ with tab_video:
         if not is_pro:
             st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
+    # Caption-Style anpassen (TikTok-Branding)
+    with st.expander("Caption-Style anpassen"):
+        cs_col1, cs_col2 = st.columns(2)
+        with cs_col1:
+            caption_text_color = st.color_picker(
+                "Text-Farbe", value="#ffffff", key="caption_text_color"
+            )
+            caption_position = st.selectbox(
+                "Position",
+                options=["bottom", "center", "top"],
+                index=0,
+                key="caption_position",
+            )
+        with cs_col2:
+            caption_bg_color = st.color_picker(
+                "Box-Farbe (Hintergrund hinter Text)", value="#000000", key="caption_bg_color"
+            )
+            caption_font_size = st.select_slider(
+                "Font-Größe",
+                options=[48, 56, 64, 72, 80, 96],
+                value=64,
+                key="caption_font_size",
+            )
+        caption_bg_alpha = st.slider(
+            "Box-Deckkraft", min_value=0, max_value=255, value=200, key="caption_bg_alpha",
+            help="0 = keine Box (nur Text), 255 = volle Box.",
+        )
+
     # Pre-flight: enable button only when all prereqs are met
     needs_upload = footage_mode in (FOOTAGE_UPLOAD, FOOTAGE_LIPSYNC)
     needs_pro = footage_mode in (FOOTAGE_AI_IMAGE, FOOTAGE_LIPSYNC)
@@ -388,17 +432,36 @@ with tab_video:
                     alignment=alignment,
                     fallback_text=text.strip(),
                     with_watermark=not strip_watermark,
+                    caption_style={
+                        "text_color": caption_text_color,
+                        "bg_color": caption_bg_color,
+                        "bg_alpha": caption_bg_alpha,
+                        "font_size": caption_font_size,
+                        "position": caption_position,
+                    },
                 )
 
                 progress.progress(100, text="Fertig.")
                 video_bytes = output_path.read_bytes()
-                st.video(video_bytes)
+                st.video(video_bytes, autoplay=True, muted=True)
                 st.download_button(
                     "Video herunterladen",
                     video_bytes,
                     file_name="voiceclip.mp4",
                     mime="video/mp4",
                 )
+                # Save in session history (last 5)
+                history = st.session_state.setdefault("history", [])
+                from datetime import datetime as _dt
+                history.insert(0, {
+                    "kind": "video",
+                    "label": (text.strip()[:50] + ("..." if len(text.strip()) > 50 else "")) or "Video",
+                    "ts": _dt.now().strftime("%H:%M:%S"),
+                    "bytes": video_bytes,
+                    "filename": "voiceclip.mp4",
+                    "mime": "video/mp4",
+                })
+                st.session_state["history"] = history[:5]
                 if strip_watermark:
                     if consumed_one_shot:
                         st.success("Pro-Export ohne Watermark. Dein 1-Video-Key ist nun verbraucht.")
@@ -469,6 +532,18 @@ with tab_enhance:
                     mime="image/png",
                     key="enhance_download_btn",
                 )
+                # Save in session history (last 5)
+                history = st.session_state.setdefault("history", [])
+                from datetime import datetime as _dt
+                history.insert(0, {
+                    "kind": "image",
+                    "label": enhance_img.name,
+                    "ts": _dt.now().strftime("%H:%M:%S"),
+                    "bytes": img_bytes,
+                    "filename": "enhanced.png",
+                    "mime": "image/png",
+                })
+                st.session_state["history"] = history[:5]
                 if consumed_one_shot:
                     st.success("Bild-Enhance fertig. Dein 1-Use-Key ist nun verbraucht.")
                 else:
