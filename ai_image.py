@@ -14,10 +14,10 @@ import requests
 
 API_BASE = "https://api.replicate.com/v1"
 FLUX_SCHNELL = "black-forest-labs/flux-schnell"
-REAL_ESRGAN = "nightmareai/real-esrgan"
-REAL_ESRGAN_VERSION = (
-    "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa"
-)
+# Clarity Upscaler is a Stable-Diffusion-based upscaler with sharper output
+# than the older Real-ESRGAN. Costs ~2-3x more per run but quality jump is
+# significant for portrait photos and product shots.
+CLARITY_UPSCALER = "philz1337x/clarity-upscaler"
 LATENTSYNC = "bytedance/latentsync"
 
 
@@ -153,10 +153,15 @@ def lipsync_video(video_in_path, audio_path, out_path):
 
 
 def enhance_image(in_path, out_path, scale=2):
-    """Upscale and clean an image via Real-ESRGAN. Returns out_path on success."""
+    """Upscale and sharpen an image via Clarity Upscaler. Returns out_path.
+
+    Clarity is SD-based: low creativity + high resemblance keep the output
+    faithful to the source so we don't hallucinate fake details. Good for
+    phone photos and product shots that need a quality boost without
+    changing the subject.
+    """
+    import base64
     with open(in_path, "rb") as f:
-        # Replicate takes a URL or a base64 data URI as input. Use base64.
-        import base64
         ext = os.path.splitext(in_path)[1].lstrip(".").lower() or "png"
         if ext == "jpg":
             ext = "jpeg"
@@ -164,24 +169,25 @@ def enhance_image(in_path, out_path, scale=2):
         data_uri = f"data:image/{ext};base64,{b64}"
 
     r = requests.post(
-        f"{API_BASE}/predictions",
+        f"{API_BASE}/models/{CLARITY_UPSCALER}/predictions",
         headers=_headers(prefer_wait=True),
         json={
-            "version": REAL_ESRGAN_VERSION,
             "input": {
                 "image": data_uri,
-                "scale": scale,
-                "face_enhance": False,
-            },
+                "scale_factor": scale,
+                "creativity": 0.3,
+                "resemblance": 0.65,
+                "output_format": "png",
+            }
         },
-        timeout=120,
+        timeout=180,
     )
     r.raise_for_status()
     data = r.json()
     if data.get("status") != "succeeded":
-        data = _poll_until_done(data["id"])
+        data = _poll_until_done(data["id"], timeout=240)
     output = data.get("output")
     if not output:
-        raise RuntimeError("Replicate returned no output")
+        raise RuntimeError("Clarity Upscaler returned no output")
     img_url = output if isinstance(output, str) else output[0]
     return _download(img_url, out_path)

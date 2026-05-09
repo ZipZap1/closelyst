@@ -67,7 +67,7 @@ def delete_voice(voice_id):
         return False
 
 
-def generate_voiceover(text, voice_id, model_id="eleven_multilingual_v2"):
+def generate_voiceover(text, voice_id, model_id="eleven_v3"):
     """Generate audio bytes (mp3) from text using the given voice."""
     url = f"{API_BASE}/text-to-speech/{voice_id}"
     headers = {**_headers(), "Content-Type": "application/json", "Accept": "audio/mpeg"}
@@ -81,7 +81,7 @@ def generate_voiceover(text, voice_id, model_id="eleven_multilingual_v2"):
     return r.content
 
 
-def generate_voiceover_with_timestamps(text, voice_id, model_id="eleven_multilingual_v2"):
+def generate_voiceover_with_timestamps(text, voice_id, model_id="eleven_v3"):
     """Generate audio plus character-level timestamps.
 
     Returns tuple (audio_bytes, alignment_dict) where alignment_dict has keys:
