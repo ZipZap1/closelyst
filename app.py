@@ -127,6 +127,7 @@ footage_mode = st.radio(
         "Eigenes Video oder Bild hochladen",
         "AI: Bild aus Text generieren (Pro)",
         "AI: Mein Bild verbessern (Pro)",
+        "AI: Lip-Sync auf mein Portrait-Video (Pro)",
     ],
     horizontal=False,
 )
@@ -159,16 +160,27 @@ elif footage_mode == "AI: Mein Bild verbessern (Pro)":
     st.caption("Bild wird via Real-ESRGAN auf 2x Auflösung skaliert und entrauscht.")
     if not is_pro:
         st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+elif footage_mode == "AI: Lip-Sync auf mein Portrait-Video (Pro)":
+    uploaded_media = st.file_uploader(
+        "Portrait-Video (.mp4 .mov, 5-30 Sek, Gesicht klar sichtbar, 9:16 bevorzugt)",
+        type=["mp4", "mov", "m4v"],
+        accept_multiple_files=False,
+    )
+    st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover (LatentSync). Dauert 30-90s, kostet ca. 7 Cent pro Generation.")
+    if not is_pro:
+        st.warning("Diese Funktion ist Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
 
 # Determine if we have what we need to enable Generate
 is_image_only_mode = footage_mode == "AI: Mein Bild verbessern (Pro)"
 needs_upload = footage_mode in (
     "Eigenes Video oder Bild hochladen",
     "AI: Mein Bild verbessern (Pro)",
+    "AI: Lip-Sync auf mein Portrait-Video (Pro)",
 )
 needs_pro = footage_mode in (
     "AI: Bild aus Text generieren (Pro)",
     "AI: Mein Bild verbessern (Pro)",
+    "AI: Lip-Sync auf mein Portrait-Video (Pro)",
 )
 needs_text_voice = not is_image_only_mode  # image-only enhance skips voiceover entirely
 ready_to_generate = bool(
@@ -183,6 +195,7 @@ _button_label = {
     "Eigenes Video oder Bild hochladen": "Video aus Upload generieren",
     "AI: Bild aus Text generieren (Pro)": "AI-Bild + Video generieren",
     "AI: Mein Bild verbessern (Pro)": "Bild verbessern",
+    "AI: Lip-Sync auf mein Portrait-Video (Pro)": "Lip-Sync + Video generieren",
 }.get(footage_mode, "Video generieren")
 generate_btn = st.button(
     _button_label,
@@ -264,6 +277,14 @@ if generate_btn:
                 prompt = ai_prompt_override.strip() or text.strip()
                 video_path = tmp_path / "ai.png"
                 ai_image.generate_image(prompt, video_path, aspect_ratio="9:16")
+            elif footage_mode == "AI: Lip-Sync auf mein Portrait-Video (Pro)":
+                progress.progress(35, text="Portrait-Video wird hochgeladen...")
+                ext = Path(uploaded_media.name).suffix.lower() or ".mp4"
+                raw_path = tmp_path / f"raw{ext}"
+                raw_path.write_bytes(uploaded_media.getvalue())
+                progress.progress(50, text="LatentSync synchronisiert Lippen, kann 30-90s dauern...")
+                video_path = tmp_path / "lipsynced.mp4"
+                ai_image.lipsync_video(raw_path, audio_path, video_path)
             elif uploaded_media is not None:
                 progress.progress(40, text="Hochgeladenes Material wird verarbeitet...")
                 ext = Path(uploaded_media.name).suffix.lower() or ".mp4"

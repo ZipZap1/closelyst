@@ -18,6 +18,7 @@ REAL_ESRGAN = "nightmareai/real-esrgan"
 REAL_ESRGAN_VERSION = (
     "f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa"
 )
+LATENTSYNC = "bytedance/latentsync"
 
 
 def _token():
@@ -93,6 +94,62 @@ def generate_image(prompt, out_path, aspect_ratio="9:16"):
         raise RuntimeError("Replicate returned no output")
     img_url = output[0] if isinstance(output, list) else output
     return _download(img_url, out_path)
+
+
+def _upload_to_replicate(file_path, content_type):
+    """Upload a binary file via Replicate's /v1/files API. Returns a URL string.
+
+    Used for inputs too large to embed as base64 data URIs comfortably
+    (videos in particular). Replicate's files endpoint accepts multipart
+    uploads and returns a URL we can reference in subsequent predictions.
+    """
+    with open(file_path, "rb") as f:
+        files = {"content": (os.path.basename(file_path), f, content_type)}
+        r = requests.post(
+            f"{API_BASE}/files",
+            headers={"Authorization": f"Bearer {_token()}"},
+            files=files,
+            timeout=300,
+        )
+    r.raise_for_status()
+    data = r.json()
+    url = data.get("urls", {}).get("get") or data.get("url")
+    if not url:
+        raise RuntimeError(f"Replicate file upload returned no URL: {data}")
+    return url
+
+
+def lipsync_video(video_in_path, audio_path, out_path):
+    """Sync the lips of the person in video_in_path to audio_path's voice.
+
+    Uses bytedance/latentsync via Replicate. The model returns a new video
+    file with lip movements aligned to the audio. Uses the file-upload
+    endpoint for both inputs because base64 data URIs are too heavy for
+    typical 5-30s phone videos.
+    """
+    video_url = _upload_to_replicate(video_in_path, "video/mp4")
+    audio_url = _upload_to_replicate(audio_path, "audio/mpeg")
+
+    r = requests.post(
+        f"{API_BASE}/models/{LATENTSYNC}/predictions",
+        headers=_headers(prefer_wait=True),
+        json={
+            "input": {
+                "video": video_url,
+                "audio": audio_url,
+            }
+        },
+        timeout=300,
+    )
+    r.raise_for_status()
+    data = r.json()
+    if data.get("status") != "succeeded":
+        data = _poll_until_done(data["id"], timeout=300)
+    output = data.get("output")
+    if not output:
+        raise RuntimeError("LatentSync returned no output")
+    out_url = output if isinstance(output, str) else output[0]
+    return _download(out_url, out_path)
 
 
 def enhance_image(in_path, out_path, scale=2):
