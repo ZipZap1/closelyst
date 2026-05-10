@@ -7,14 +7,31 @@ st.title("Allgemeine Geschäftsbedingungen")
 
 st.markdown(
     """
-**Stand:** 09.05.2026
+**Stand:** 10.05.2026
 
-## 1. Geltungsbereich
+## 1. Geltungsbereich, Vertragssprache, Speicherung des Vertragstextes
+
+### 1.1 Geltungsbereich
 
 Diese AGB gelten für alle Verträge zwischen Haci Ibrahim Dogan, Holunderweg 3,
 44869 Bochum (im Folgenden "Anbieter") und dem Nutzer (im Folgenden "Kunde")
 über die Nutzung der Web-App **VoiceClip**. Maßgeblich ist die zum Zeitpunkt
 des Vertragsschlusses gültige Fassung.
+
+### 1.2 Vertragssprache
+
+Vertragssprache ist ausschließlich Deutsch. Übersetzungen dieser AGB in
+andere Sprachen dienen nur der Information; im Zweifel ist die deutsche
+Fassung maßgeblich.
+
+### 1.3 Speicherung des Vertragstextes
+
+Der Vertragstext (diese AGB sowie die Bestelldaten) wird vom Anbieter
+nicht gespeichert und ist nach Abschluss des Bestellvorgangs nicht mehr
+über den Anbieter abrufbar. Der Kunde kann diese AGB jederzeit auf
+dieser Webseite einsehen, herunterladen und ausdrucken. Die Bestelldaten
+werden dem Kunden zudem per E-Mail durch Lemon Squeezy als
+Auftragsverarbeiter zugesandt.
 
 ## 2. Vertragsgegenstand
 
@@ -147,7 +164,17 @@ gelten zusätzlich deren Limits und Verfügbarkeiten.
 
 Pro-Limits werden monatlich beim Abrechnungs-Stichtag zurückgesetzt.
 
-## 8. Haftung
+## 8. Gewährleistung und Mängelrechte
+
+Es gelten die gesetzlichen Mängelhaftungsrechte. Bei digitalen Produkten
+und digitalen Dienstleistungen finden insbesondere die §§ 327 ff. BGB
+Anwendung. Der Anbieter ist verpflichtet, dem Kunden die vereinbarte
+Leistung mangelfrei bereitzustellen und für deren Aktualisierung im
+gesetzlich vorgesehenen Zeitraum zu sorgen.
+
+Mängel sind dem Anbieter unverzüglich nach Entdeckung anzuzeigen.
+
+## 9. Haftung
 
 Der Anbieter haftet uneingeschränkt für Vorsatz und grobe Fahrlässigkeit
 sowie für Schäden aus Verletzung des Lebens, des Körpers oder der
@@ -164,7 +191,7 @@ nötige Rechte an verwendeten Stimmen, Bildern und Videos besitzt und
 die Erstellung keine Rechte Dritter (insbesondere Persönlichkeits- oder
 Urheberrechte) verletzt.
 
-## 9. Nutzungsrechte an erstellten Videos
+## 10. Nutzungsrechte an erstellten Videos
 
 Der Kunde erhält ein einfaches, nicht-ausschließliches Nutzungsrecht
 an den mit VoiceClip erstellten Videos. Stock-Footage von Pexels
@@ -172,7 +199,7 @@ unterliegt der [Pexels-Lizenz](https://www.pexels.com/license/). Bei
 Voice-Cloning versichert der Kunde, dass er die erforderlichen Rechte
 an den hochgeladenen Sprachproben besitzt.
 
-## 10. Kündigung Pro-Abo
+## 11. Kündigung Pro-Abo
 
 Das Pro-Abo wird auf unbestimmte Zeit geschlossen. Der Kunde kann
 jederzeit zum Ende der laufenden Abrechnungsperiode kündigen. Die
@@ -182,7 +209,7 @@ Kündigungslink befindet sich in jeder Bestätigungs-E-Mail.
 Eine Kündigungsfrist gibt es nicht. Bereits gezahlte Beträge für die
 laufende Periode werden nicht anteilig erstattet.
 
-## 11. Änderungen der AGB
+## 12. Änderungen der AGB
 
 Der Anbieter kann diese AGB mit Wirkung für die Zukunft ändern, soweit
 die Änderung sachlich gerechtfertigt ist (z.B. Anpassung an geänderte
@@ -192,19 +219,39 @@ Kunde nicht innerhalb dieser Frist in Textform, gelten die geänderten
 AGB als angenommen. Auf das Widerspruchsrecht und die Folgen wird in
 der Mitteilung gesondert hingewiesen.
 
-## 12. Schlussbestimmungen
+## 13. Schlussbestimmungen
 
-- Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
-  UN-Kaufrechts. Bei Verbrauchern gilt diese Rechtswahl nur, soweit
-  hierdurch nicht zwingende Schutzvorschriften des Rechts ihres
-  Aufenthaltsstaats ausgehöhlt werden
-- Gerichtsstand ist Bochum, soweit der Kunde Kaufmann, juristische
-  Person des öffentlichen Rechts oder öffentlich-rechtliches
-  Sondervermögen ist
-- Sollten einzelne Bestimmungen unwirksam sein, bleibt die Wirksamkeit
-  der übrigen Bestimmungen unberührt
+### 13.1 Anwendbares Recht
 
-## 13. Online-Streitbeilegung
+Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
+UN-Kaufrechts. Bei Verbrauchern gilt diese Rechtswahl nur, soweit
+hierdurch nicht zwingende Schutzvorschriften des Rechts ihres
+Aufenthaltsstaats ausgehöhlt werden.
+
+### 13.2 Erfüllungsort
+
+Erfüllungsort für sämtliche Leistungen aus den mit dem Anbieter
+bestehenden Geschäftsbeziehungen sowie der Gerichtsstand ist der Sitz
+des Anbieters in Bochum, soweit der Kunde nicht Verbraucher, sondern
+Kaufmann, juristische Person des öffentlichen Rechts oder
+öffentlich-rechtliches Sondervermögen ist. Dasselbe gilt, wenn der Kunde
+keinen allgemeinen Gerichtsstand in Deutschland oder der EU hat oder der
+Wohnsitz oder gewöhnliche Aufenthalt im Zeitpunkt der Klageerhebung nicht
+bekannt ist.
+
+### 13.3 Salvatorische Klausel
+
+Sollten einzelne Bestimmungen dieses Vertrages unwirksam oder
+undurchführbar sein oder nach Vertragsschluss unwirksam oder
+undurchführbar werden, bleibt davon die Wirksamkeit des Vertrages im
+Übrigen unberührt. An die Stelle der unwirksamen oder undurchführbaren
+Bestimmung soll diejenige wirksame und durchführbare Regelung treten,
+deren Wirkungen der wirtschaftlichen Zielsetzung am nächsten kommen,
+die die Vertragsparteien mit der unwirksamen bzw. undurchführbaren
+Bestimmung verfolgt haben. Die vorstehenden Bestimmungen gelten
+entsprechend für den Fall, dass sich der Vertrag als lückenhaft erweist.
+
+## 14. Online-Streitbeilegung
 
 Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung
 bereit: https://ec.europa.eu/consumers/odr/
