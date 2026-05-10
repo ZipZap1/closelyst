@@ -178,13 +178,27 @@ tab_video, tab_enhance = st.tabs(["Video erstellen", "Bild verbessern (Pro)"])
 # Tab 1: Video erstellen
 # ============================================================
 with tab_video:
+    # TikTok-typische Hooks, verschiedene Formate (Tutorial, Storytelling,
+    # Listicle, Contrarian, Personal). Bei jedem Klick auf "Beispiel laden"
+    # zyklisch durch die Liste.
+    _EXAMPLE_TEXTS = [
+        "Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst.",
+        "Vor einer Woche hatte ich null Downloads. Heute zeige ich dir was ich gelernt habe. Erstens: niemand will deine App. Zweitens: jeder will dein Tool. Hier ist mein neuer Plan.",
+        "Drei KI-Tools, die kein Mensch kennt, aber jeder Creator nutzen sollte. Tool eins macht aus Text in zehn Sekunden ein TikTok. Tool zwei findet passende Stockvideos. Tool drei erzeugt synchronisierte Untertitel.",
+        "Warum 90 Prozent aller Side-Projects scheitern, und wie du in den 10 Prozent landest. Erstens: kein Markt-Test vorher. Zweitens: zu viel Feature, zu wenig Fokus. Drittens: keine Distribution.",
+        "Ich habe in einem Monat 100 aktive Nutzer bekommen. Mit null Marketing-Budget. So lief das. Hook eins: jeden Tag ein TikTok. Hook zwei: 20 DMs an Micro-Creator. Hook drei: Product Hunt Launch.",
+        "Die meisten Founder bauen das falsche Produkt. Sie fragen nicht ihre User. Sie schauen nicht auf Daten. Sie verlieben sich in ihre Idee. Hier sind drei Fragen, die du vor jedem Build stellen solltest.",
+        "Stell dir vor du koenntest in zwei Minuten ein TikTok ohne dein Gesicht zu zeigen. Text rein, fertiges Video raus. Mit AI-Voice, Stock-Footage und Captions. Genau das macht VoiceClip.",
+        "Drei Sachen die ich gerne vor meiner ersten App gewusst haette. Erstens: Distribution ist wichtiger als das Produkt. Zweitens: dein erster Launch wird floppen, das ist okay. Drittens: ship oft, ship schnell.",
+    ]
+
     def _load_example():
         # on_click callback runs before the next rerun, which is the
         # only safe place to mutate a widget's session_state key after
         # the widget has been instantiated.
-        st.session_state["voiceover_text"] = (
-            "Drei Tipps wie du als Solo-Founder deine ersten Nutzer kriegst."
-        )
+        idx = st.session_state.get("example_idx", 0)
+        st.session_state["voiceover_text"] = _EXAMPLE_TEXTS[idx % len(_EXAMPLE_TEXTS)]
+        st.session_state["example_idx"] = idx + 1
 
     text = st.text_area(
         "Was soll der Voiceover sagen?",
@@ -194,7 +208,7 @@ with tab_video:
     )
     st.button(
         "Beispiel laden",
-        help="Füllt das Textfeld mit einem Test-Beispiel.",
+        help="Füllt das Textfeld mit einem Beispiel-Hook. Bei jedem Klick ein anderer.",
         key="example_btn",
         on_click=_load_example,
     )
