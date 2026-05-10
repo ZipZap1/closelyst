@@ -203,12 +203,16 @@ _CAPTION_Y_BY_POSITION = {
 
 def compose(audio_path, video_path, output_path, tmp_dir,
             alignment=None, fallback_text="", with_watermark=True,
-            caption_style=None):
+            caption_style=None, animate_image=True):
     """Render the final 1080x1920 portrait video.
 
     Background can be either a video file (looped + center-cropped) or a
     still image (looped with a slow Ken-Burns zoom so it doesn't feel
     static). Detection is by file extension.
+
+    animate_image=False disables the Ken-Burns zoom for still backgrounds.
+    Use this when the background is intentionally meant to stay static
+    (e.g. AI-generated image where the user wants a clean look).
 
     If alignment is provided and non-empty, captions are word-synced.
     Otherwise falls back to a single static caption from fallback_text.
@@ -285,7 +289,7 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     # For images we apply a slow Ken-Burns zoom (zoompan) so the still has
     # gentle motion. Pre-scale to a large canvas so zoompan has resolution
     # to crop into without softening.
-    if is_image_bg:
+    if is_image_bg and animate_image:
         total_frames = max(25, int(duration * 25))
         zoom_target = 1.18  # final zoom factor at end of clip
         zoom_step = (zoom_target - 1.0) / max(1, total_frames - 1)

@@ -507,6 +507,7 @@ with tab_video:
                         "font_size": caption_font_size,
                         "position": caption_position,
                     },
+                    animate_image=(footage_mode != FOOTAGE_AI_IMAGE),
                 )
 
                 progress.progress(100, text="Fertig.")
