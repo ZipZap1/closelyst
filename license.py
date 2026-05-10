@@ -51,6 +51,18 @@ def _validate_with_polar(license_key, increment_usage=0):
         return {"_error": str(exc)}
 
 
+def _is_master_key(license_key):
+    """True if the entered key matches the MASTER_LICENSE_KEY env var.
+
+    Master key bypasses Polar entirely and grants Pro-equivalent access.
+    For internal testing, demos, or owner use. Never share, never log.
+    """
+    master = os.environ.get("MASTER_LICENSE_KEY", "").strip()
+    if not master or len(master) < 16:
+        return False
+    return license_key.strip() == master
+
+
 def validate_license_key(license_key):
     """Validate a Polar license key.
 
@@ -64,9 +76,21 @@ def validate_license_key(license_key):
 
     Polar invalidates Pro-subscription keys server-side when the subscription
     cancels or expires, so no client-side billing-cycle reset is needed.
+
+    Master-Key (MASTER_LICENSE_KEY env): bypasses Polar, returns a Pro-equivalent
+    response. Never appears in any UI text. Used for owner / internal testing.
     """
     if not license_key or len(license_key.strip()) < 10:
         return {"valid": False, "reason": "Empty or too short"}
+
+    if _is_master_key(license_key):
+        return {
+            "valid": True,
+            "activation_limit": None,  # None = unlimited in the Hauptseite flow
+            "activation_usage": 0,
+            "key_id": "master",
+            "renews_at": None,
+        }
 
     data = _validate_with_polar(license_key)
     if "_error" in data:
@@ -100,6 +124,9 @@ def activate_license_key(license_key, instance_name, weight=1):
     """
     if not license_key:
         return {"activated": False, "reason": "Empty key"}
+
+    if _is_master_key(license_key):
+        return {"activated": True}
 
     data = _validate_with_polar(license_key, increment_usage=max(1, int(weight)))
     if "_error" in data:
