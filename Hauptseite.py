@@ -198,10 +198,26 @@ with tab_video:
         on_click=_load_example,
     )
 
-    # Voice cloning is a Pro-only power feature. Hide entirely from
-    # non-Pro users so the form stays lean. Pro users see it as a
-    # collapsed expander under "Pro-Einstellungen".
+    # Voice-Backend-Wahl: Free-User bekommen kuratierte OpenAI-Voices,
+    # Pro-User koennen zwischen ElevenLabs (Premium, synced Captions, Voice-Cloning)
+    # und OpenAI (konsistenter, oft besser fuer EN) switchen.
     if is_pro:
+        backend_label = st.radio(
+            "Voice-Backend",
+            options=["ElevenLabs (Premium, synced Captions, Voice-Cloning)", "OpenAI (Standard, schneller)"],
+            index=0,
+            horizontal=True,
+            key="voice_backend_radio",
+            help="ElevenLabs ist expressiver, hat synced Captions und Voice-Cloning. OpenAI ist konsistenter und fuer englischen Content oft genauso gut.",
+        )
+        voice_backend = "elevenlabs" if backend_label.startswith("ElevenLabs") else "openai_tts1hd"
+    else:
+        voice_backend = "openai_tts1hd"
+        st.caption("Free-Modus: 3 kuratierte OpenAI-Voices. Pro schaltet ElevenLabs Premium-Voices, word-synced Captions und Voice-Cloning frei.")
+
+    # Voice cloning is a Pro-only power feature, AND only meaningful when the
+    # ElevenLabs backend is selected (clones live in the ElevenLabs account).
+    if is_pro and voice_backend == "elevenlabs":
         with st.expander("Pro-Einstellungen: Eigene Stimme klonen"):
             st.caption(
                 "Audio-Sample (30+ Sek, klar gesprochen) hochladen. "
@@ -243,21 +259,28 @@ with tab_video:
                                 pass
                         st.error(f"Klonen fehlgeschlagen: {msg}")
 
-    voices_data = cached_voices()
+    # Voice picker: ElevenLabs (full list + cloned voice if any) vs OpenAI (curated 3)
     selected_voice_id = None
-    if isinstance(voices_data, dict) and "_error" in voices_data:
-        st.warning(f"Voices nicht geladen: {voices_data['_error']}")
-    elif voices_data:
-        voice_options = {v["name"]: v["voice_id"] for v in voices_data}
-        custom_id = st.session_state.get("custom_voice_id")
-        custom_name = st.session_state.get("custom_voice_name")
-        if custom_id and custom_name:
-            custom_label = f"[Eigene] {custom_name}"
-            voice_options = {custom_label: custom_id, **voice_options}
-        label = st.selectbox("Stimme", list(voice_options.keys()), key="voice_select")
-        selected_voice_id = voice_options[label]
+    if voice_backend == "elevenlabs":
+        voices_data = cached_voices()
+        if isinstance(voices_data, dict) and "_error" in voices_data:
+            st.warning(f"Voices nicht geladen: {voices_data['_error']}")
+        elif voices_data:
+            voice_options = {v["name"]: v["voice_id"] for v in voices_data}
+            custom_id = st.session_state.get("custom_voice_id")
+            custom_name = st.session_state.get("custom_voice_name")
+            if custom_id and custom_name:
+                custom_label = f"[Eigene] {custom_name}"
+                voice_options = {custom_label: custom_id, **voice_options}
+            label = st.selectbox("Stimme", list(voice_options.keys()), key="voice_select")
+            selected_voice_id = voice_options[label]
+        else:
+            st.info("Keine Stimmen verfügbar.")
     else:
-        st.info("Keine Stimmen verfügbar.")
+        openai_voices = voice.list_openai_voices()
+        voice_options = {f"{v['name']} ({v['category']})": v["voice_id"] for v in openai_voices}
+        label = st.selectbox("Stimme", list(voice_options.keys()), key="voice_select_openai")
+        selected_voice_id = voice_options[label]
 
     # Footage source. Short labels with captions so the choice fits in one
     # glance instead of forcing users to read four long sentences.
@@ -419,10 +442,15 @@ with tab_video:
                 if activation_blocked:
                     st.warning("Schlüssel bereits verbraucht. Dieses Video bekommt Wasserzeichen.")
 
-                progress.progress(10, text="Voiceover generieren mit ElevenLabs (mit Timestamps)...")
-                audio_bytes, alignment = voice.generate_voiceover_with_timestamps(
-                    text.strip(), selected_voice_id
-                )
+                if voice_backend == "elevenlabs":
+                    progress.progress(10, text="Voiceover generieren mit ElevenLabs (mit synced Captions)...")
+                    audio_bytes, alignment = voice.generate_voiceover_with_timestamps(
+                        text.strip(), selected_voice_id
+                    )
+                else:
+                    progress.progress(10, text="Voiceover generieren mit OpenAI...")
+                    audio_bytes = voice.generate(text.strip(), voice_backend, selected_voice_id)
+                    alignment = {}
                 audio_path = tmp_path / "voice.mp3"
                 audio_path.write_bytes(audio_bytes)
 
