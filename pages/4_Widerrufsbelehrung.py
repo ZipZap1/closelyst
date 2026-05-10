@@ -50,12 +50,12 @@ eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas anderes
 vereinbart; in keinem Fall werden Ihnen wegen dieser Rückzahlung Entgelte
 berechnet.
 
-## Vorzeitiges Erlöschen des Widerrufsrechts (§ 356 Abs. 5 BGB)
+## Watermark entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
 
-Bei einem Vertrag über die Bereitstellung nicht auf einem körperlichen
-Datenträger befindlicher digitaler Inhalte erlischt das Widerrufsrecht
-auch dann, wenn der Anbieter mit der Vertragsausführung begonnen hat,
-nachdem der Kunde
+Beim Einmalkauf "Watermark entfernen" handelt es sich um einen
+digitalen Inhalt im Sinne des § 327 Abs. 2 BGB. Das Widerrufsrecht
+erlischt nach § 356 Abs. 5 BGB, wenn der Anbieter mit der
+Vertragsausführung begonnen hat, nachdem der Kunde
 
 - ausdrücklich zugestimmt hat, dass der Anbieter mit der Ausführung des
   Vertrags vor Ablauf der Widerrufsfrist beginnt, **und**
@@ -64,10 +64,20 @@ nachdem der Kunde
 - der Anbieter dem Kunden eine Bestätigung des Vertrags und der erteilten
   Erklärungen in Textform zur Verfügung gestellt hat.
 
-Der Kunde erteilt diese Zustimmung und Kenntnisbestätigung durch das
-Setzen der entsprechenden Checkbox auf der Checkout-Seite. Mit der
-Bereitstellung des License-Keys per E-Mail beginnt die Vertragsausführung,
-und das Widerrufsrecht erlischt zu diesem Zeitpunkt.
+Mit der Bereitstellung des License-Keys per E-Mail beginnt die
+Vertragsausführung, und das Widerrufsrecht erlischt zu diesem Zeitpunkt.
+
+## Pro-Abo (digitale Dienstleistung) – Wertersatz bei Nutzung
+
+VoiceClip Pro ist eine fortlaufende digitale Dienstleistung. Das
+Widerrufsrecht bleibt während der gesamten vierzehntägigen Frist
+bestehen, auch wenn die Dienstleistung bereits genutzt wurde.
+
+Hat der Kunde verlangt, dass die Dienstleistung während der
+Widerrufsfrist beginnen soll, schuldet er bei Widerruf einen
+zeitanteiligen Wertersatz nach § 357a Abs. 2 BGB. Beispiel: Bei
+8,99 € pro Monat beträgt der tägliche Wertersatz rund 0,30 €. Bei
+Widerruf nach 5 Tagen Nutzung erstattet der Anbieter rund 7,49 €.
 
 ## Muster-Widerrufsformular
 

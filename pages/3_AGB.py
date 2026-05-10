@@ -105,12 +105,13 @@ Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und
 spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die
 Mitteilung über Ihren Widerruf dieses Vertrags bei uns eingegangen ist.
 
-### 6.2 Vorzeitiges Erlöschen des Widerrufsrechts (§ 356 Abs. 5 BGB)
+### 6.2 Watermark entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
 
-Das Widerrufsrecht erlischt bei einem Vertrag über die Bereitstellung
-nicht auf einem körperlichen Datenträger befindlicher digitaler Inhalte
-vorzeitig, wenn der Anbieter mit der Vertragsausführung begonnen hat,
-nachdem der Kunde
+Beim Einmalkauf "Watermark entfernen" handelt es sich um einen
+digitalen Inhalt im Sinne des § 327 Abs. 2 BGB, der dem Kunden mit
+einem License-Key bereitgestellt wird. Das Widerrufsrecht erlischt
+nach § 356 Abs. 5 BGB vorzeitig, wenn der Anbieter mit der
+Vertragsausführung begonnen hat, nachdem der Kunde
 
 - ausdrücklich zugestimmt hat, dass der Anbieter mit der Ausführung des
   Vertrags vor Ablauf der Widerrufsfrist beginnt, **und**
@@ -124,7 +125,33 @@ Setzen der entsprechenden Checkbox auf der Checkout-Seite. Mit der
 Bereitstellung des License-Keys per E-Mail beginnt die Vertragsausführung,
 und das Widerrufsrecht erlischt zu diesem Zeitpunkt.
 
-### 6.3 Muster-Widerrufsformular
+### 6.3 Pro-Abo (digitale Dienstleistung) – Widerrufsrecht und Wertersatz
+
+VoiceClip Pro stellt eine fortlaufende digitale Dienstleistung im Sinne
+des § 327 Abs. 3 BGB dar. Das Widerrufsrecht erlischt hier nicht durch
+die bloße Bereitstellung des License-Keys, sondern besteht innerhalb
+der vollen vierzehntägigen Frist auch dann fort, wenn der Kunde die
+Dienstleistung in dieser Zeit bereits genutzt hat.
+
+Hat der Kunde verlangt, dass die Dienstleistung während der
+Widerrufsfrist beginnen soll, schuldet er dem Anbieter im Falle des
+Widerrufs einen anteiligen Wertersatz für die bis zum Widerruf
+erbrachte Leistung gemäß § 357a Abs. 2 BGB. Der Wertersatz wird auf
+Grundlage des vereinbarten Gesamtpreises zeitanteilig berechnet.
+
+Beispiel: Bei einer Pro-Abo-Gebühr von 8,99 € pro Monat (30 Tage)
+beträgt der tägliche Wertersatz rund 0,30 €. Hat der Kunde die
+Dienstleistung 5 Tage genutzt und widerruft am 6. Tag, beträgt der
+Wertersatz rund 1,50 €; der Anbieter erstattet die Differenz von
+rund 7,49 €.
+
+Eine Wertersatzpflicht besteht nur, wenn der Anbieter den Kunden
+ordnungsgemäß über das Widerrufsrecht und die Wertersatzpflicht
+belehrt und der Kunde ausdrücklich zugestimmt hat, dass die Ausführung
+vor Ablauf der Widerrufsfrist beginnt. Beides erfolgt durch das Setzen
+der vorgesehenen Checkboxen auf der Checkout-Seite.
+
+### 6.4 Muster-Widerrufsformular
 
 Wenn Sie den Vertrag widerrufen wollen, können Sie dieses Formular
 ausfüllen und an uns zurücksenden:
@@ -148,7 +175,7 @@ ausfüllen und an uns zurücksenden:
 >
 > (\\*) Unzutreffendes streichen.
 
-### 6.4 Widerrufsbutton (ab 19.06.2026)
+### 6.5 Widerrufsbutton (ab 19.06.2026)
 
 Ab dem 19.06.2026 stellt der Anbieter zur Ausübung des Widerrufsrechts
 gemäß § 356a BGB eine elektronische Widerrufsfunktion bereit. Diese ist
