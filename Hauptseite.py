@@ -255,7 +255,7 @@ with tab_video:
     if isinstance(voices_data, dict) and "_error" in voices_data:
         st.warning(f"Voices nicht geladen: {voices_data['_error']}")
     elif voices_data:
-        voice_options = {f"{v['name']} ({v['category']})": v["voice_id"] for v in voices_data}
+        voice_options = {v["name"]: v["voice_id"] for v in voices_data}
         custom_id = st.session_state.get("custom_voice_id")
         custom_name = st.session_state.get("custom_voice_name")
         if custom_id and custom_name:
