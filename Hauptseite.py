@@ -135,10 +135,11 @@ with st.sidebar:
 
     remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
     pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
+    st.caption("Beide Pakete schalten alle Pro-Features frei: ElevenLabs Premium-Voices, word-synced Captions, Voice-Cloning, kein Wasserzeichen.")
     if remove_url:
-        st.link_button("2,99 EUR: Wasserzeichen entfernen", remove_url)
+        st.link_button("2,99 EUR: Einmalig (1 Video)", remove_url)
     if pro_url:
-        st.link_button("8,99 EUR/Mo: Pro werden", pro_url)
+        st.link_button("8,99 EUR/Mo: Unlimitiert", pro_url)
     if not remove_url and not pro_url:
         st.caption("Polar-Checkout-URLs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
@@ -213,7 +214,7 @@ with tab_video:
         voice_backend = "elevenlabs" if backend_label.startswith("ElevenLabs") else "openai_tts1hd"
     else:
         voice_backend = "openai_tts1hd"
-        st.caption("Free-Modus: 3 kuratierte OpenAI-Voices. Pro schaltet ElevenLabs Premium-Voices, word-synced Captions und Voice-Cloning frei.")
+        st.caption("Free-Modus: 3 kuratierte OpenAI-Voices. Bezahltes Paket (ab 2,99 EUR) schaltet ElevenLabs Premium-Voices, word-synced Captions und Voice-Cloning frei.")
 
     # Voice cloning is a Pro-only power feature, AND only meaningful when the
     # ElevenLabs backend is selected (clones live in the ElevenLabs account).
