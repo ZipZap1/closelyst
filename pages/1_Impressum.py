@@ -14,10 +14,6 @@ Holunderweg 3<br>
 44869 Bochum<br>
 Deutschland
 
-**Vertreten durch**
-
-Haci Ibrahim Dogan (Einzelunternehmer)
-
 **Kontakt**
 
 Telefon: +49 1551 0899025<br>
