@@ -39,7 +39,7 @@ VoiceClip ist eine Web-Anwendung zur Erstellung von TikTok-tauglichen
 Voiceover-Videos. Die Grundfunktionen sind kostenlos. Optional können
 folgende kostenpflichtige Leistungen erworben werden:
 
-- **Watermark entfernen** (Einmalkauf): Entfernt das Wasserzeichen aus
+- **Wasserzeichen entfernen** (Einmalkauf): Entfernt das Wasserzeichen aus
   einem einzelnen Export
 - **VoiceClip Pro (Monatsabo)**: Entfernt das Wasserzeichen dauerhaft
   und schaltet erweiterte Funktionen frei (Voice-Cloning, KI-Bilder,
@@ -58,7 +58,7 @@ der Kunde
    Zustimmung erteilt (siehe § 6),
 4. den Bestellvorgang durch Klick auf den Bestellbutton abschließt.
 
-Der Kunde erhält im Anschluss eine Bestätigungs-E-Mail mit License-Key.
+Der Kunde erhält im Anschluss eine Bestätigungs-E-Mail mit Lizenz-Schlüssel.
 Diese E-Mail enthält zugleich die Bestätigung des Vertrags in Textform
 gemäß § 312f BGB.
 
@@ -106,11 +106,11 @@ Ihnen alle Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und
 spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die
 Mitteilung über Ihren Widerruf dieses Vertrags bei uns eingegangen ist.
 
-### 6.2 Watermark entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
+### 6.2 Wasserzeichen entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
 
-Beim Einmalkauf "Watermark entfernen" handelt es sich um einen
+Beim Einmalkauf "Wasserzeichen entfernen" handelt es sich um einen
 digitalen Inhalt im Sinne des § 327 Abs. 2 BGB, der dem Kunden mit
-einem License-Key bereitgestellt wird. Das Widerrufsrecht erlischt
+einem Lizenz-Schlüssel bereitgestellt wird. Das Widerrufsrecht erlischt
 nach § 356 Abs. 5 BGB vorzeitig, wenn der Anbieter mit der
 Vertragsausführung begonnen hat, nachdem der Kunde
 
@@ -123,14 +123,14 @@ Vertragsausführung begonnen hat, nachdem der Kunde
 
 Der Kunde erteilt diese Zustimmung und Kenntnisbestätigung durch das
 Setzen der entsprechenden Checkbox auf der Checkout-Seite. Mit der
-Bereitstellung des License-Keys per E-Mail beginnt die Vertragsausführung,
+Bereitstellung des Lizenz-Schlüssels per E-Mail beginnt die Vertragsausführung,
 und das Widerrufsrecht erlischt zu diesem Zeitpunkt.
 
 ### 6.3 Pro-Abo (digitale Dienstleistung) – Widerrufsrecht und Wertersatz
 
 VoiceClip Pro stellt eine fortlaufende digitale Dienstleistung im Sinne
 des § 327 Abs. 3 BGB dar. Das Widerrufsrecht erlischt hier nicht durch
-die bloße Bereitstellung des License-Keys, sondern besteht innerhalb
+die bloße Bereitstellung des Lizenz-Schlüssels, sondern besteht innerhalb
 der vollen vierzehntägigen Frist auch dann fort, wenn der Kunde die
 Dienstleistung in dieser Zeit bereits genutzt hat.
 
@@ -172,7 +172,7 @@ ausfüllen und an uns zurücksenden:
 >
 > E-Mail-Adresse, mit der bestellt wurde
 >
-> License-Key (zur schnelleren Bearbeitung; siehe Bestätigungs-E-Mail)
+> Lizenz-Schlüssel (zur schnelleren Bearbeitung; siehe Bestätigungs-E-Mail)
 >
 > Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier)
 >
@@ -180,7 +180,7 @@ ausfüllen und an uns zurücksenden:
 >
 > (\\*) Unzutreffendes streichen.
 
-Die Angabe von E-Mail-Adresse und License-Key ist nicht zwingend
+Die Angabe von E-Mail-Adresse und Lizenz-Schlüssel ist nicht zwingend
 erforderlich, beschleunigt aber die Bearbeitung Ihres Widerrufs
 erheblich.
 

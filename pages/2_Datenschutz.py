@@ -51,9 +51,9 @@ Dienstleister übertragen:
 Übertragungen in die USA basieren auf Standardvertragsklauseln nach
 Art. 46 DSGVO.
 
-## 5. License-Key-Verarbeitung
+## 5. Lizenz-Schlüssel-Verarbeitung
 
-Wenn du einen License-Key eingibst, wird dieser an Polar zur
+Wenn du einen Lizenz-Schlüssel eingibst, wird dieser an Polar zur
 Validierung übertragen. Wir speichern den Key während deiner Session im
 Browser-Speicher von Streamlit. Es findet keine dauerhafte Speicherung
 auf unserer Seite statt.

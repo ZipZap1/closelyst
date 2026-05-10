@@ -50,9 +50,9 @@ eingesetzt haben, es sei denn, mit Ihnen wurde ausdrücklich etwas anderes
 vereinbart; in keinem Fall werden Ihnen wegen dieser Rückzahlung Entgelte
 berechnet.
 
-## Watermark entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
+## Wasserzeichen entfernen (digitaler Inhalt) – vorzeitiges Erlöschen
 
-Beim Einmalkauf "Watermark entfernen" handelt es sich um einen
+Beim Einmalkauf "Wasserzeichen entfernen" handelt es sich um einen
 digitalen Inhalt im Sinne des § 327 Abs. 2 BGB. Das Widerrufsrecht
 erlischt nach § 356 Abs. 5 BGB, wenn der Anbieter mit der
 Vertragsausführung begonnen hat, nachdem der Kunde
@@ -64,7 +64,7 @@ Vertragsausführung begonnen hat, nachdem der Kunde
 - der Anbieter dem Kunden eine Bestätigung des Vertrags und der erteilten
   Erklärungen in Textform zur Verfügung gestellt hat.
 
-Mit der Bereitstellung des License-Keys per E-Mail beginnt die
+Mit der Bereitstellung des Lizenz-Schlüssels per E-Mail beginnt die
 Vertragsausführung, und das Widerrufsrecht erlischt zu diesem Zeitpunkt.
 
 ## Pro-Abo (digitale Dienstleistung) – Wertersatz bei Nutzung
@@ -99,7 +99,7 @@ ausfüllen und an uns zurücksenden:
 >
 > E-Mail-Adresse, mit der bestellt wurde
 >
-> License-Key (zur schnelleren Bearbeitung; siehe Bestätigungs-E-Mail)
+> Lizenz-Schlüssel (zur schnelleren Bearbeitung; siehe Bestätigungs-E-Mail)
 >
 > Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier)
 >
@@ -107,7 +107,7 @@ ausfüllen und an uns zurücksenden:
 >
 > (\\*) Unzutreffendes streichen.
 
-Die Angabe von E-Mail-Adresse und License-Key ist nicht zwingend
+Die Angabe von E-Mail-Adresse und Lizenz-Schlüssel ist nicht zwingend
 erforderlich, beschleunigt aber die Bearbeitung Ihres Widerrufs
 erheblich.
     """,

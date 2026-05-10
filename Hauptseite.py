@@ -65,11 +65,11 @@ def cached_validate(key):
 
 # ----- Sidebar: license / pro -----
 with st.sidebar:
-    st.subheader("Pro / Watermark entfernen")
+    st.subheader("Pro / Wasserzeichen entfernen")
     license_key_input = st.text_input(
-        "License Key",
+        "Lizenz-Schlüssel",
         type="password",
-        help="Hast du einen Key gekauft? Hier einfügen und Einlösen klicken.",
+        help="Hast du einen Lizenz-Schlüssel gekauft? Hier einfügen und Einlösen klicken.",
         key="license_key_input",
     )
 
@@ -79,7 +79,7 @@ with st.sidebar:
         st.session_state.pop("validated_key", None)
 
     if st.button("Einlösen", disabled=not license_key_input, key="redeem_btn"):
-        with st.spinner("License prüfen..."):
+        with st.spinner("Lizenz prüfen..."):
             st.session_state["license_validation"] = cached_validate(license_key_input)
             st.session_state["validated_key"] = license_key_input
 
@@ -106,25 +106,25 @@ with st.sidebar:
                 if limit == 1:
                     st.error("Key gültig, aber bereits verbraucht. Kauf einen neuen oder upgrade auf Pro monatlich.")
                 elif renews_at_de:
-                    st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Bankabzug am {renews_at_de}.")
+                    st.error(f"Pro-Limit ({limit}) erreicht. Zurücksetzung bei der nächsten Abbuchung am {renews_at_de}.")
                 else:
-                    st.error(f"Pro-Limit ({limit}) erreicht. Reset beim nächsten Billing.")
+                    st.error(f"Pro-Limit ({limit}) erreicht. Zurücksetzung bei der nächsten Abrechnung.")
             else:
                 is_pro = True
                 is_one_shot_key = (limit == 1)
                 if is_one_shot_key:
-                    st.success("Pro aktiv. 1 Video ohne Watermark verfügbar.")
+                    st.success("Pro aktiv. 1 Video ohne Wasserzeichen verfügbar.")
                 elif limit is not None:
                     pro_remaining = limit - usage
-                    msg = f"Pro aktiv. {pro_remaining} von {limit} Generations diesen Zyklus übrig."
+                    msg = f"Pro aktiv. {pro_remaining} von {limit} Generierungen diesen Zyklus übrig."
                     if renews_at_de:
-                        msg += f" Reset am {renews_at_de}."
+                        msg += f" Zurücksetzung am {renews_at_de}."
                     if pro_remaining <= 10:
                         st.warning(msg)
                     else:
                         st.success(msg)
                 else:
-                    st.success("Pro aktiv. Watermark wird entfernt.")
+                    st.success("Pro aktiv. Wasserzeichen wird entfernt.")
         else:
             st.error(f"Ungültig: {result.get('reason', 'unbekannt')}")
     elif license_key_input:
@@ -135,7 +135,7 @@ with st.sidebar:
     remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
     pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
     if remove_url:
-        st.link_button("2,99 EUR: Watermark entfernen", remove_url)
+        st.link_button("2,99 EUR: Wasserzeichen entfernen", remove_url)
     if pro_url:
         st.link_button("8,99 EUR/Mo: Pro werden", pro_url)
     if not remove_url and not pro_url:
@@ -297,7 +297,7 @@ with tab_video:
         )
         st.caption("Tipp: englische Prompts liefern oft schärfere Ergebnisse, weil das Modell auf englischen Beschreibungen trainiert ist.")
         if not is_pro:
-            st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+            st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
     elif footage_mode == FOOTAGE_LIPSYNC:
         uploaded_media = st.file_uploader(
             "Portrait-Video (.mp4 .mov, 5-30 Sek, Gesicht klar sichtbar, 9:16 bevorzugt)",
@@ -307,7 +307,7 @@ with tab_video:
         )
         st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden.")
         if not is_pro:
-            st.warning("Pro-only. Trag oben einen Pro-Key ein oder kauf einen.")
+            st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
 
     # Caption-Style anpassen. Defaults sind TikTok-typisch: gelber Text,
     # größerer Font, schwarze halbtransparente Box am unteren Rand.
@@ -369,7 +369,7 @@ with tab_video:
         if needs_upload and uploaded_media is None:
             _missing.append("Datei hochladen")
         if needs_pro and not is_pro:
-            _missing.append("Pro-Key in Sidebar eintragen")
+            _missing.append("Pro-Schlüssel in Seitenleiste eintragen")
         if _missing:
             st.caption("Noch nötig: " + ", ".join(_missing))
 
@@ -391,7 +391,7 @@ with tab_video:
             try:
                 strip_watermark = is_pro and not activation_blocked
                 if activation_blocked:
-                    st.warning("Key bereits verbraucht. Dieses Video bekommt Watermark.")
+                    st.warning("Schlüssel bereits verbraucht. Dieses Video bekommt Wasserzeichen.")
 
                 progress.progress(10, text="Voiceover generieren mit ElevenLabs (mit Timestamps)...")
                 audio_bytes, alignment = voice.generate_voiceover_with_timestamps(
@@ -461,11 +461,11 @@ with tab_video:
                 )
                 if strip_watermark:
                     if consumed_one_shot:
-                        st.success("Pro-Export ohne Watermark. Dein 1-Video-Key ist nun verbraucht.")
+                        st.success("Pro-Export ohne Wasserzeichen. Dein 1-Video-Schlüssel ist nun verbraucht.")
                     else:
-                        st.success("Pro-Export ohne Watermark.")
+                        st.success("Pro-Export ohne Wasserzeichen.")
                 else:
-                    st.info("Watermark ist im Video. Für 2,99 EUR entfernen siehe Sidebar.")
+                    st.info("Wasserzeichen ist im Video. Für 2,99 EUR entfernen siehe Seitenleiste.")
             except Exception as exc:
                 st.error(f"Fehler: {exc}")
 
@@ -486,7 +486,7 @@ with tab_enhance:
         key="enhance_uploader",
     )
     if not is_pro:
-        st.warning("Pro-only Feature. Trag oben in der Sidebar einen Pro-Key ein oder kauf einen.")
+        st.warning("Funktion nur für Pro. Trag oben in der Seitenleiste einen Pro-Schlüssel ein oder kauf einen.")
     enhance_btn = st.button(
         "Bild verbessern",
         type="primary",
