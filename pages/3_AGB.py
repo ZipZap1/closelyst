@@ -169,11 +169,19 @@ ausfüllen und an uns zurücksenden:
 >
 > Anschrift des/der Verbraucher(s)
 >
+> E-Mail-Adresse, mit der bestellt wurde
+>
+> License-Key (zur schnelleren Bearbeitung; siehe Bestätigungs-E-Mail)
+>
 > Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier)
 >
 > Datum
 >
 > (\\*) Unzutreffendes streichen.
+
+Die Angabe von E-Mail-Adresse und License-Key ist nicht zwingend
+erforderlich, beschleunigt aber die Bearbeitung Ihres Widerrufs
+erheblich.
 
 ### 6.5 Widerrufsbutton (ab 19.06.2026)
 
