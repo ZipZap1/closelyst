@@ -195,7 +195,7 @@ verlinkt.
 
 Der Anbieter stellt die App auf **Streamlit Community Cloud** bereit.
 Eine bestimmte Verfügbarkeit oder Reaktionszeit wird nicht garantiert.
-Für Funktionen, die externe APIs nutzen (ElevenLabs, Pexels, Replicate),
+Für Funktionen, die externe APIs nutzen (ElevenLabs, OpenAI, Pexels, Replicate),
 gelten zusätzlich deren Limits und Verfügbarkeiten.
 
 Pro-Limits werden monatlich beim Abrechnungs-Stichtag zurückgesetzt.

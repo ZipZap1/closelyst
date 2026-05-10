@@ -40,8 +40,12 @@ Zugriffszeit) verarbeitet. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO
 Wenn du VoiceClip nutzt, werden je nach Funktion Daten an folgende
 Dienstleister übertragen:
 
-- **ElevenLabs Inc., USA** (Sprachsynthese und Voice-Cloning): dein eingegebener
-  Text, optional dein Voice-Sample beim Cloning
+- **ElevenLabs Inc., USA** (Sprachsynthese und Voice-Cloning, Pro-Tier):
+  dein eingegebener Text, optional dein Voice-Sample beim Cloning
+- **OpenAI, L.L.C., USA** (Sprachsynthese im Free-Tier ueber tts-1-hd und
+  gpt-4o-mini-tts): dein eingegebener Text wird an OpenAI uebermittelt und
+  in Audio umgewandelt. OpenAI speichert API-Inputs laut eigener
+  API-Datenrichtlinie maximal 30 Tage und nutzt sie nicht zum Training.
 - **Pexels GmbH, Deutschland** (Stock-Footage-Suche): die Suchwörter
 - **Replicate Inc., USA** (KI-Bildgenerierung, Bild-Verbesserung, Lip-Sync):
   dein Prompt, ggf. hochgeladenes Bild oder Video, ggf. Audio-Datei

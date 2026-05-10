@@ -608,7 +608,8 @@ st.markdown(
     </style>
     <div class="footer-links" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6);">
     VoiceClip. closelyst. MVP-Version.
-    Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> (Voiceover, Voice-Cloning),
+    Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> (Pro-Voiceover, Voice-Cloning),
+    <a href="https://openai.com" target="_blank">OpenAI</a> (Free-Voiceover),
     <a href="https://www.pexels.com" target="_blank">Pexels</a> (Stock-Footage),
     <a href="https://replicate.com" target="_blank">Replicate</a> (Flux Schnell, Clarity Upscaler, LatentSync)
     und <a href="https://polar.sh" target="_blank">Polar</a> (Payments).
