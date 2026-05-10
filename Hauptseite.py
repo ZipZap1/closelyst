@@ -554,4 +554,18 @@ st.caption(
     "[Replicate](https://replicate.com) (Flux Schnell, Clarity Upscaler, LatentSync) "
     "und [Lemon Squeezy](https://www.lemonsqueezy.com) (Payments)."
 )
-st.caption("[Impressum](/Impressum) | [Datenschutz](/Datenschutz) | [AGB](/AGB) | [Widerrufsbelehrung](/Widerrufsbelehrung)")
+st.markdown(
+    """
+    <style>
+    .legal-footer a { text-decoration: none; color: inherit; }
+    .legal-footer a:hover { text-decoration: underline; }
+    </style>
+    <div class="legal-footer" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6);">
+    <a href="/Impressum" target="_self">Impressum</a> |
+    <a href="/Datenschutz" target="_self">Datenschutz</a> |
+    <a href="/AGB" target="_self">AGB</a> |
+    <a href="/Widerrufsbelehrung" target="_self">Widerrufsbelehrung</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
