@@ -12,6 +12,11 @@ venv/
 test_*.mp4
 test_*.png
 
+# Voice-quality test runtime files (Score-Daten und Logs nicht committen)
+test_outputs/voice-quality-test/scores.json
+test_outputs/voice-quality-test/_run.log
+test_outputs/voice-quality-test/_sanity_*.mp3
+
 # OS
 .DS_Store
 Thumbs.db
