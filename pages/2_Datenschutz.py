@@ -47,6 +47,13 @@ Dienstleister übertragen:
   dein Prompt, ggf. hochgeladenes Bild oder Video, ggf. Audio-Datei
 - **Polar Software, Inc., USA** (Zahlungsabwicklung als
   Merchant of Record): Email, Rechnungs- und Zahlungsdaten
+- **Supabase Inc., USA** (Datenbank fuer Free-Tier-Rate-Limiting):
+  ein Hash aus IP-Adresse und Browser-User-Agent, sowie Datum und
+  Anzahl deiner Free-Tier-Generierungen. Die rohe IP wird nicht
+  gespeichert; sie wird vor dem Speichern via SHA-256 zu einem
+  pseudonymen Fingerprint reduziert. Rechtsgrundlage: Art. 6 Abs. 1
+  lit. f DSGVO (berechtigtes Interesse an Missbrauchsschutz und
+  Kostenkontrolle). Aufbewahrung: 30 Tage rollierend.
 
 Übertragungen in die USA basieren auf Standardvertragsklauseln nach
 Art. 46 DSGVO.

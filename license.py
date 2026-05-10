@@ -24,15 +24,20 @@ def _organization_id():
     return items[0]["id"]
 
 
-def _validate_with_polar(license_key, increment_usage=False):
-    """Raw POST to Polar validate. Returns parsed JSON or {"_error": ...}."""
+def _validate_with_polar(license_key, increment_usage=0):
+    """Raw POST to Polar validate. Returns parsed JSON or {"_error": ...}.
+
+    increment_usage: integer to add to the key's usage counter. 0 means
+    pure validation without consuming a slot. Values > 1 let cost-heavy
+    features like Lip-Sync count proportionally more than cheap ones.
+    """
     try:
         org_id = _organization_id()
     except Exception as exc:
         return {"_error": f"Cannot resolve organization: {exc}"}
     payload = {"key": license_key.strip(), "organization_id": org_id}
     if increment_usage:
-        payload["increment_usage"] = 1
+        payload["increment_usage"] = int(increment_usage)
     try:
         r = requests.post(
             f"{API_BASE}/customer-portal/license-keys/validate",
@@ -82,17 +87,21 @@ def validate_license_key(license_key):
     }
 
 
-def activate_license_key(license_key, instance_name):
-    """Consume one usage slot.
+def activate_license_key(license_key, instance_name, weight=1):
+    """Consume `weight` usage slots (default 1).
 
     Polar tracks consumption via increment_usage on the validate endpoint.
     instance_name is accepted for signature compatibility with the previous
     LS implementation but is not used by Polar.
+
+    weight > 1 lets cost-heavy features like Lip-Sync deplete the cap
+    faster than cheap features. With limit_usage=200 and weight=7,
+    Lip-Sync caps at ~28 uses per cycle (200/7).
     """
     if not license_key:
         return {"activated": False, "reason": "Empty key"}
 
-    data = _validate_with_polar(license_key, increment_usage=True)
+    data = _validate_with_polar(license_key, increment_usage=max(1, int(weight)))
     if "_error" in data:
         if data.get("_status") == 404:
             return {"activated": False, "reason": "Key nicht gefunden"}

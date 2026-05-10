@@ -13,7 +13,8 @@ import time
 import requests
 
 API_BASE = "https://api.replicate.com/v1"
-FLUX_SCHNELL = "black-forest-labs/flux-schnell"
+FLUX_DEV = "black-forest-labs/flux-dev"
+LLAMA3_8B = "meta/meta-llama-3-8b-instruct"
 # Clarity Upscaler and LatentSync are not "official" Replicate models, so
 # the /v1/models/{owner}/{name}/predictions shortcut returns 404. We pin a
 # version hash and POST to /v1/predictions instead.
@@ -68,11 +69,69 @@ def _download(url, out_path):
     return out_path
 
 
+def text_to_visual_prompt(voiceover_text):
+    """Turn a (possibly German) voiceover script into a vivid English visual
+    scene description for Flux. Falls back to the original text on error.
+
+    Flux is trained mostly on English visual captions, not spoken scripts.
+    Passing a raw German voiceover sentence yields generic or off-topic
+    images. Asking an LLM to extract the topic and rewrite it as one
+    concrete English scene fixes that.
+    """
+    cleaned = (voiceover_text or "").strip()
+    if len(cleaned) < 5:
+        return cleaned
+
+    system = (
+        "You convert short voiceover scripts into a single English visual "
+        "scene description for an AI image generator. Output ONE concrete, "
+        "vivid scene that matches the topic of the script. Focus on "
+        "setting, subject, mood, lighting, colors. No people speaking, no "
+        "captions, no text in the image. Keep it under 30 words. "
+        "Output ONLY the description sentence, nothing else, no preamble, "
+        "no quotes, no explanation."
+    )
+    user = f"Voiceover script:\n{cleaned[:500]}\n\nVisual scene:"
+
+    try:
+        r = requests.post(
+            f"{API_BASE}/models/{LLAMA3_8B}/predictions",
+            headers=_headers(prefer_wait=True),
+            json={
+                "input": {
+                    "prompt": user,
+                    "system_prompt": system,
+                    "max_tokens": 80,
+                    "temperature": 0.7,
+                }
+            },
+            timeout=30,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if data.get("status") != "succeeded":
+            data = _poll_until_done(data["id"], timeout=30)
+        output = data.get("output")
+        if not output:
+            return cleaned
+        text = "".join(output) if isinstance(output, list) else str(output)
+        text = text.strip()
+        # Strip common LLM preambles in case the model ignored the instruction
+        for prefix in ("Visual scene:", "Scene:", "Here is", "Here's"):
+            if text.lower().startswith(prefix.lower()):
+                text = text[len(prefix):].lstrip(":. ").strip()
+        # Take first line only, keep it concise
+        text = text.split("\n")[0].strip().strip('"').strip("'")
+        return text or cleaned
+    except Exception:
+        return cleaned
+
+
 def generate_image(prompt, out_path, aspect_ratio="9:16"):
-    """Text-to-image via Flux Schnell. Returns out_path on success."""
+    """Text-to-image via Flux Dev. Returns out_path on success."""
     styled = f"{prompt}, cinematic, vibrant colors, professional photography, sharp focus"
     r = requests.post(
-        f"{API_BASE}/models/{FLUX_SCHNELL}/predictions",
+        f"{API_BASE}/models/{FLUX_DEV}/predictions",
         headers=_headers(prefer_wait=True),
         json={
             "input": {
@@ -80,10 +139,9 @@ def generate_image(prompt, out_path, aspect_ratio="9:16"):
                 "aspect_ratio": aspect_ratio,
                 "num_outputs": 1,
                 "output_format": "png",
-                "go_fast": True,
             }
         },
-        timeout=90,
+        timeout=120,
     )
     r.raise_for_status()
     data = r.json()

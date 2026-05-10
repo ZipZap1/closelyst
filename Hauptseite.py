@@ -30,6 +30,7 @@ import stock
 import compose
 import license as license_mod
 import ai_image
+import rate_limit
 
 _ASSETS = Path(__file__).parent / "assets"
 st.set_page_config(
@@ -291,11 +292,11 @@ with tab_video:
             st.caption("Bild erkannt, bekommt einen langsamen Zoom (Ken-Burns).")
     elif footage_mode == FOOTAGE_AI_IMAGE:
         ai_prompt_override = st.text_input(
-            "Prompt (optional, leer = nutzt deinen Voiceover-Text als Prompt)",
+            "Prompt (optional, leer = AI generiert eine passende Szene aus deinem Voiceover-Text)",
             placeholder="Z.B.: Solo-Founder programmiert nachts, Neon-Stadt im Hintergrund",
             key="ai_prompt_input",
         )
-        st.caption("Tipp: englische Prompts liefern oft schärfere Ergebnisse, weil das Modell auf englischen Beschreibungen trainiert ist.")
+        st.caption("Leer lassen für automatische Szenen-Erkennung. Eigenen englischen Prompt für maximale Kontrolle eintragen.")
         if not is_pro:
             st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
     elif footage_mode == FOOTAGE_LIPSYNC:
@@ -305,7 +306,7 @@ with tab_video:
             accept_multiple_files=False,
             key="lipsync_uploader",
         )
-        st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden.")
+        st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden. Lip-Sync ist rechenintensiv und zählt 7x ins Pro-Limit (~28 Lip-Syncs pro Zyklus möglich).")
         if not is_pro:
             st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
 
@@ -373,13 +374,38 @@ with tab_video:
         if _missing:
             st.caption("Noch nötig: " + ", ".join(_missing))
 
+    if not is_pro:
+        @st.cache_data(ttl=30, show_spinner=False)
+        def _cached_free_quota():
+            return rate_limit.get_free_quota()
+        _used, _rem, _lim = _cached_free_quota()
+        if _rem == 0:
+            st.caption(f"Tageslimit erreicht ({_used}/{_lim} kostenlose Videos heute). Komm morgen wieder oder kauf einen Pro-Schlüssel.")
+        elif _rem <= _lim:
+            st.caption(f"Free-Tier: {_used}/{_lim} kostenlose Videos heute verbraucht. {_rem} übrig.")
+
     # ----- Generate (video flow) -----
     if generate_btn:
+        # Free-tier daily limit: only relevant for non-Pro users.
+        if not is_pro:
+            used, remaining, free_limit = rate_limit.get_free_quota()
+            if remaining <= 0:
+                st.error(
+                    f"Tageslimit von {free_limit} kostenlosen Videos erreicht. "
+                    "Komm morgen wieder oder kauf einen Pro-Schlüssel für unbegrenzte Generierungen."
+                )
+                st.stop()
+
         consumed_one_shot = False
         activation_blocked = False
+        # Lip-Sync calls a cost-heavy Replicate model, so it counts more
+        # against the Pro cap than the cheap modes.
+        usage_weight = 7 if footage_mode == FOOTAGE_LIPSYNC else 1
         if is_pro:
             instance = f"voiceclip-{uuid.uuid4().hex[:8]}"
-            activation = license_mod.activate_license_key(license_key_input, instance)
+            activation = license_mod.activate_license_key(
+                license_key_input, instance, weight=usage_weight
+            )
             if activation.get("activated"):
                 consumed_one_shot = is_one_shot_key
             else:
@@ -401,8 +427,12 @@ with tab_video:
                 audio_path.write_bytes(audio_bytes)
 
                 if footage_mode == FOOTAGE_AI_IMAGE:
+                    if ai_prompt_override.strip():
+                        prompt = ai_prompt_override.strip()
+                    else:
+                        progress.progress(30, text="Visuelle Szene aus Voiceover-Text ableiten...")
+                        prompt = ai_image.text_to_visual_prompt(text.strip())
                     progress.progress(40, text="AI-Bild wird generiert...")
-                    prompt = ai_prompt_override.strip() or text.strip()
                     video_path = tmp_path / "ai.png"
                     ai_image.generate_image(prompt, video_path, aspect_ratio="9:16")
                 elif footage_mode == FOOTAGE_LIPSYNC:
@@ -451,6 +481,8 @@ with tab_video:
                 )
 
                 progress.progress(100, text="Fertig.")
+                if not is_pro:
+                    rate_limit.consume_free_quota()
                 video_bytes = output_path.read_bytes()
                 st.video(video_bytes, autoplay=True, muted=True)
                 st.download_button(
