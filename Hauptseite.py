@@ -547,20 +547,20 @@ with tab_enhance:
 
 # ----- Footer -----
 st.divider()
-st.caption(
-    "VoiceClip. closelyst. MVP-Version. "
-    "Powered by [ElevenLabs](https://elevenlabs.io) (Voiceover, Voice-Cloning), "
-    "[Pexels](https://www.pexels.com) (Stock-Footage), "
-    "[Replicate](https://replicate.com) (Flux Schnell, Clarity Upscaler, LatentSync) "
-    "und [Lemon Squeezy](https://www.lemonsqueezy.com) (Payments)."
-)
 st.markdown(
     """
     <style>
-    .legal-footer a { text-decoration: none; color: inherit; }
-    .legal-footer a:hover { text-decoration: underline; }
+    .footer-links a { text-decoration: none; color: inherit; }
+    .footer-links a:hover { text-decoration: underline; }
     </style>
-    <div class="legal-footer" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6);">
+    <div class="footer-links" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6);">
+    VoiceClip. closelyst. MVP-Version.
+    Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> (Voiceover, Voice-Cloning),
+    <a href="https://www.pexels.com" target="_blank">Pexels</a> (Stock-Footage),
+    <a href="https://replicate.com" target="_blank">Replicate</a> (Flux Schnell, Clarity Upscaler, LatentSync)
+    und <a href="https://www.lemonsqueezy.com" target="_blank">Lemon Squeezy</a> (Payments).
+    </div>
+    <div class="footer-links" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6); margin-top: 0.5em;">
     <a href="/Impressum" target="_self">Impressum</a> |
     <a href="/Datenschutz" target="_self">Datenschutz</a> |
     <a href="/AGB" target="_self">AGB</a> |
