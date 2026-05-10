@@ -132,22 +132,14 @@ with st.sidebar:
 
     st.divider()
 
-    @st.cache_data(ttl=3600, show_spinner=False)
-    def _cached_buy_url(product_id):
-        return license_mod.get_buy_url(product_id)
-
-    remove_url = _cached_buy_url(
-        os.environ.get("LEMONSQUEEZY_PRODUCT_REMOVE_WATERMARK", "")
-    )
-    pro_url = _cached_buy_url(
-        os.environ.get("LEMONSQUEEZY_PRODUCT_PRO_MONTHLY", "")
-    )
+    remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
+    pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
     if remove_url:
         st.link_button("2,99 EUR: Watermark entfernen", remove_url)
     if pro_url:
         st.link_button("8,99 EUR/Mo: Pro werden", pro_url)
     if not remove_url and not pro_url:
-        st.caption("Lemon-Squeezy-Produkt-IDs in .env eintragen, dann erscheinen die Checkout-Buttons.")
+        st.caption("Polar-Checkout-URLs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
 
 # ----- Onboarding -----
@@ -558,7 +550,7 @@ st.markdown(
     Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> (Voiceover, Voice-Cloning),
     <a href="https://www.pexels.com" target="_blank">Pexels</a> (Stock-Footage),
     <a href="https://replicate.com" target="_blank">Replicate</a> (Flux Schnell, Clarity Upscaler, LatentSync)
-    und <a href="https://www.lemonsqueezy.com" target="_blank">Lemon Squeezy</a> (Payments).
+    und <a href="https://polar.sh" target="_blank">Polar</a> (Payments).
     </div>
     <div class="footer-links" style="font-size: 0.875em; color: rgba(49, 51, 63, 0.6); margin-top: 0.5em;">
     <a href="/Impressum" target="_self">Impressum</a> |

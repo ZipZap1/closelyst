@@ -1,212 +1,119 @@
-"""Lemon Squeezy License Key validation and checkout URL helpers."""
+"""Polar License Key validation and checkout URL helpers."""
+import functools
 import os
-from datetime import datetime, timezone
 
 import requests
 
-API_BASE = "https://api.lemonsqueezy.com/v1"
+API_BASE = "https://api.polar.sh/v1"
 
 
-def _api_headers():
-    api_key = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
-    return {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/vnd.api+json",
-        "Content-Type": "application/vnd.api+json",
-    }
+@functools.lru_cache(maxsize=1)
+def _organization_id():
+    token = os.environ.get("POLAR_API_TOKEN", "").strip()
+    if not token:
+        raise RuntimeError("POLAR_API_TOKEN not set")
+    r = requests.get(
+        f"{API_BASE}/organizations",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=15,
+    )
+    r.raise_for_status()
+    items = r.json().get("items", [])
+    if not items:
+        raise RuntimeError("No Polar organization found for this token")
+    return items[0]["id"]
 
 
-def _fetch_subscription_for_order(order_id):
-    """Return the subscription attributes dict for a given order, or None.
-
-    One-shot purchases have no subscription, in which case the filtered list
-    comes back empty and we return None. Pro Monthly purchases have one.
-    """
-    api_key = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
-    if not api_key or not order_id:
-        return None
+def _validate_with_polar(license_key, increment_usage=False):
+    """Raw POST to Polar validate. Returns parsed JSON or {"_error": ...}."""
     try:
-        r = requests.get(
-            f"{API_BASE}/subscriptions",
-            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/vnd.api+json"},
-            params={"filter[order_id]": order_id},
-            timeout=15,
-        )
-        if r.status_code != 200:
-            return None
-        items = r.json().get("data") or []
-        if not items:
-            return None
-        return items[0].get("attributes")
-    except requests.RequestException:
-        return None
-
-
-def _parse_iso(ts):
-    if not ts:
-        return None
+        org_id = _organization_id()
+    except Exception as exc:
+        return {"_error": f"Cannot resolve organization: {exc}"}
+    payload = {"key": license_key.strip(), "organization_id": org_id}
+    if increment_usage:
+        payload["increment_usage"] = 1
     try:
-        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
-    except Exception:
-        return None
-
-
-def _maybe_reset_billing_cycle(license_id, current_expires_at, sub_attrs):
-    """If the subscription has rolled into a new period, zero the activation_usage
-    and push expires_at to the upcoming renews_at so we recognise the new cycle.
-
-    Returns the updated license_key attributes dict if a reset happened, else None.
-    """
-    if not sub_attrs or sub_attrs.get("status") not in ("active", "on_trial"):
-        return None
-    renews_at = sub_attrs.get("renews_at")
-    if not renews_at:
-        return None
-    now = datetime.now(timezone.utc)
-    expires = _parse_iso(current_expires_at)
-    if expires and expires > now:
-        return None  # still inside the current cycle, nothing to do
-    try:
-        r = requests.patch(
-            f"{API_BASE}/license-keys/{license_id}",
-            headers=_api_headers(),
-            json={
-                "data": {
-                    "type": "license-keys",
-                    "id": str(license_id),
-                    "attributes": {
-                        "activation_usage": 0,
-                        "expires_at": renews_at,
-                    },
-                }
-            },
+        r = requests.post(
+            f"{API_BASE}/customer-portal/license-keys/validate",
+            json=payload,
             timeout=15,
         )
         if r.status_code == 200:
-            return r.json().get("data", {}).get("attributes", {})
-    except requests.RequestException:
-        pass
-    return None
+            return r.json()
+        return {"_error": f"HTTP {r.status_code}", "_status": r.status_code}
+    except requests.RequestException as exc:
+        return {"_error": str(exc)}
 
 
 def validate_license_key(license_key):
-    """Validate a license key against Lemon Squeezy.
+    """Validate a Polar license key.
 
-    Returns dict: {
-        "valid": bool,
-        "activation_limit": int|None,   # None means unlimited
-        "activation_usage": int,
-        "key_id": int|None,
-        "renews_at": str|None,          # ISO timestamp of next subscription renewal
-        "reason": str (optional),
-    }
+    Returns dict (same contract as the previous LS implementation):
+        valid, activation_limit, activation_usage, key_id, renews_at, reason
 
-    Also auto-resets activation_usage to 0 when the subscription has rolled
-    into a new billing cycle, so a Pro user who hit the cap last month
-    starts fresh once their bank charge goes through. Detection is by
-    comparing license_key.expires_at to now: when expires_at is missing or
-    past, push it to subscription.renews_at and zero the usage.
+    Polar mapping:
+        activation_limit  <- limit_usage    (max validations a.k.a. exports)
+        activation_usage  <- usage          (current count, server-side)
+        renews_at         <- expires_at     (subscription end / key expiry)
+
+    Polar invalidates Pro-subscription keys server-side when the subscription
+    cancels or expires, so no client-side billing-cycle reset is needed.
     """
     if not license_key or len(license_key.strip()) < 10:
         return {"valid": False, "reason": "Empty or too short"}
 
-    try:
-        r = requests.post(
-            f"{API_BASE}/licenses/validate",
-            data={"license_key": license_key.strip()},
-            timeout=15,
-        )
-        if r.status_code != 200:
-            return {"valid": False, "reason": f"HTTP {r.status_code}"}
-        data = r.json()
-        if not bool(data.get("valid", False)):
-            return {"valid": False, "reason": data.get("error") or "License invalid"}
-        lk = data.get("license_key") or {}
-        meta = data.get("meta") or {}
+    data = _validate_with_polar(license_key)
+    if "_error" in data:
+        if data.get("_status") == 404:
+            return {"valid": False, "reason": "Key nicht gefunden"}
+        return {"valid": False, "reason": data["_error"]}
 
-        # Try auto-reset on subscription renewal
-        renews_at = None
-        license_id = lk.get("id")
-        order_id = meta.get("order_id")
-        if license_id and order_id:
-            sub_attrs = _fetch_subscription_for_order(order_id)
-            if sub_attrs:
-                renews_at = sub_attrs.get("renews_at")
-                updated = _maybe_reset_billing_cycle(
-                    license_id, lk.get("expires_at"), sub_attrs
-                )
-                if updated:
-                    lk["activation_usage"] = updated.get("activation_usage", 0) or 0
-                    lk["expires_at"] = updated.get("expires_at")
+    status = data.get("status", "")
+    if status != "granted":
+        return {"valid": False, "reason": f"Key {status or 'invalid'}"}
 
-        return {
-            "valid": True,
-            "activation_limit": lk.get("activation_limit"),
-            "activation_usage": lk.get("activation_usage", 0) or 0,
-            "key_id": license_id,
-            "renews_at": renews_at,
-        }
-    except requests.RequestException as e:
-        return {"valid": False, "reason": str(e)}
+    return {
+        "valid": True,
+        "activation_limit": data.get("limit_usage"),
+        "activation_usage": data.get("usage", 0) or 0,
+        "key_id": data.get("id"),
+        "renews_at": data.get("expires_at"),
+    }
 
 
 def activate_license_key(license_key, instance_name):
-    """Consume one activation slot. Returns dict: {"activated": bool, "reason": str}.
+    """Consume one usage slot.
 
-    Used for one-shot keys (Watermark Remove). Each successful activation
-    increments activation_usage; once usage >= activation_limit, further
-    activations fail and the key is effectively spent.
+    Polar tracks consumption via increment_usage on the validate endpoint.
+    instance_name is accepted for signature compatibility with the previous
+    LS implementation but is not used by Polar.
     """
     if not license_key:
         return {"activated": False, "reason": "Empty key"}
-    try:
-        r = requests.post(
-            f"{API_BASE}/licenses/activate",
-            data={
-                "license_key": license_key.strip(),
-                "instance_name": instance_name,
-            },
-            timeout=15,
-        )
-        if r.status_code in (200, 201):
-            data = r.json()
-            if data.get("activated"):
-                return {"activated": True}
-            return {"activated": False, "reason": data.get("error") or "Activation failed"}
-        return {"activated": False, "reason": f"HTTP {r.status_code}"}
-    except requests.RequestException as e:
-        return {"activated": False, "reason": str(e)}
+
+    data = _validate_with_polar(license_key, increment_usage=True)
+    if "_error" in data:
+        if data.get("_status") == 404:
+            return {"activated": False, "reason": "Key nicht gefunden"}
+        return {"activated": False, "reason": data["_error"]}
+
+    status = data.get("status", "")
+    if status != "granted":
+        return {"activated": False, "reason": f"Key {status or 'invalid'}"}
+
+    limit = data.get("limit_usage")
+    usage = data.get("usage", 0) or 0
+    if limit is not None and limit > 0 and usage > limit:
+        return {"activated": False, "reason": "Usage-Limit ueberschritten"}
+
+    return {"activated": True}
 
 
-def get_buy_url(product_id):
-    """Fetch the canonical buy_now_url for a product via Lemon Squeezy API.
+def get_buy_url(env_var_name):
+    """Return the Polar checkout URL stored in the named env var.
 
-    Earlier versions tried to hand-build the URL from a store subdomain plus
-    product ID. That broke for stores with a custom domain and uses the wrong
-    path/format anyway (LS uses /checkout/buy/<variant-uuid>, not
-    /buy/<product-id>). Asking the API for the canonical URL avoids both
-    issues and follows whatever the store's current domain config is.
+    For Polar we keep the full checkout URL in the env var directly (created
+    once in the Polar dashboard) instead of building it from a product ID.
     """
-    api_key = os.environ.get("LEMONSQUEEZY_API_KEY", "").strip()
-    pid = str(product_id).strip()
-    if not api_key or not pid:
-        return ""
-    try:
-        r = requests.get(
-            f"{API_BASE}/products/{pid}",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Accept": "application/vnd.api+json",
-            },
-            timeout=15,
-        )
-        if r.status_code == 200:
-            return (
-                r.json()
-                .get("data", {})
-                .get("attributes", {})
-                .get("buy_now_url", "")
-            )
-    except requests.RequestException:
-        pass
-    return ""
+    return os.environ.get(env_var_name, "").strip()

@@ -13,7 +13,7 @@ st.title("Datenschutzerklärung")
 
 st.markdown(
     """
-**Stand:** 09.05.2026
+**Stand:** 10.05.2026
 
 ## 1. Verantwortlicher
 
@@ -45,7 +45,7 @@ Dienstleister übertragen:
 - **Pexels GmbH, Deutschland** (Stock-Footage-Suche): die Suchwörter
 - **Replicate Inc., USA** (KI-Bildgenerierung, Bild-Verbesserung, Lip-Sync):
   dein Prompt, ggf. hochgeladenes Bild oder Video, ggf. Audio-Datei
-- **Lemon Squeezy (UAB Squeezy, Litauen / USA)** (Zahlungsabwicklung als
+- **Polar Software, Inc., USA** (Zahlungsabwicklung als
   Merchant of Record): Email, Rechnungs- und Zahlungsdaten
 
 Übertragungen in die USA basieren auf Standardvertragsklauseln nach
@@ -53,7 +53,7 @@ Art. 46 DSGVO.
 
 ## 5. License-Key-Verarbeitung
 
-Wenn du einen License-Key eingibst, wird dieser an Lemon Squeezy zur
+Wenn du einen License-Key eingibst, wird dieser an Polar zur
 Validierung übertragen. Wir speichern den Key während deiner Session im
 Browser-Speicher von Streamlit. Es findet keine dauerhafte Speicherung
 auf unserer Seite statt.

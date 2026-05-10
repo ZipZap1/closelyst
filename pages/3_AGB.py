@@ -30,7 +30,7 @@ Der Vertragstext (diese AGB sowie die Bestelldaten) wird vom Anbieter
 nicht gespeichert und ist nach Abschluss des Bestellvorgangs nicht mehr
 über den Anbieter abrufbar. Der Kunde kann diese AGB jederzeit auf
 dieser Webseite einsehen, herunterladen und ausdrucken. Die Bestelldaten
-werden dem Kunden zudem per E-Mail durch Lemon Squeezy als
+werden dem Kunden zudem per E-Mail durch Polar als
 Auftragsverarbeiter zugesandt.
 
 ## 2. Vertragsgegenstand
@@ -48,7 +48,7 @@ folgende kostenpflichtige Leistungen erworben werden:
 ## 3. Vertragsschluss
 
 Der Kauf eines kostenpflichtigen Produkts erfolgt über die Checkout-Seite
-des Zahlungsdienstleisters Lemon Squeezy. Der Vertrag kommt zustande, wenn
+des Zahlungsdienstleisters Polar. Der Vertrag kommt zustande, wenn
 der Kunde
 
 1. das gewünschte Produkt auswählt,
@@ -62,17 +62,18 @@ Der Kunde erhält im Anschluss eine Bestätigungs-E-Mail mit License-Key.
 Diese E-Mail enthält zugleich die Bestätigung des Vertrags in Textform
 gemäß § 312f BGB.
 
-## 4. Zahlungsabwicklung über Lemon Squeezy
+## 4. Zahlungsabwicklung über Polar
 
-Die Zahlungsabwicklung erfolgt ausschließlich über **Lemon Squeezy
-(UAB Squeezy, Litauen)** als Merchant of Record. Lemon Squeezy ist der
-formale Verkäufer gegenüber dem Kunden, übernimmt Steuerabführung, USt
-und Rechnungsstellung. Die AGB von Lemon Squeezy ergänzen diese AGB für
-den Zahlungsvorgang.
+Die Zahlungsabwicklung erfolgt ausschließlich über **Polar Software, Inc.
+(USA)** als Merchant of Record. Polar ist der formale Verkäufer gegenüber
+dem Kunden, übernimmt Steuerabführung, USt und Rechnungsstellung. Die AGB
+und Datenschutzbestimmungen von Polar (https://polar.sh/legal) ergänzen
+diese AGB für den Zahlungsvorgang. Die Datenübermittlung in die USA
+erfolgt auf Basis der Standardvertragsklauseln nach Art. 46 DSGVO.
 
 ## 5. Preise
 
-Die jeweils aktuellen Preise werden auf der Lemon-Squeezy-Checkout-Seite
+Die jeweils aktuellen Preise werden auf der Polar-Checkout-Seite
 angezeigt. Alle Preise sind Bruttopreise inklusive eventuell anfallender
 Umsatzsteuer.
 
@@ -238,7 +239,7 @@ an den hochgeladenen Sprachproben besitzt.
 
 Das Pro-Abo wird auf unbestimmte Zeit geschlossen. Der Kunde kann
 jederzeit zum Ende der laufenden Abrechnungsperiode kündigen. Die
-Kündigung erfolgt über das Kundenportal von Lemon Squeezy. Der
+Kündigung erfolgt über das Kundenportal von Polar. Der
 Kündigungslink befindet sich in jeder Bestätigungs-E-Mail.
 
 Eine Kündigungsfrist gibt es nicht. Bereits gezahlte Beträge für die
