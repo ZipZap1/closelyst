@@ -262,17 +262,22 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     duration = get_audio_duration(audio_path)
     tmp_dir = Path(tmp_dir)
     is_image_bg = _is_image(video_path)
+
+    # Pro-Pfad: echte Wort-Timestamps aus ElevenLabs => word-level Reveal
+    # (jedes Wort einzeln, groesseres Font fuer Punch).
+    # Free-Pfad: kein Alignment => 3-Wort-Chunks evenly verteilt.
+    word_level = bool(alignment)
     style = {
         "text_color": "#ffffff",
         "bg_color": "#000000",
         "bg_alpha": 200,
-        "font_size": 64,
+        "font_size": 96 if word_level else 64,
         "position": "bottom",
     }
     if caption_style:
         style.update({k: v for k, v in caption_style.items() if v is not None})
 
-    phrases = _alignment_to_phrases(alignment) if alignment else []
+    phrases = _alignment_to_phrases(alignment, target_seconds=0.05, max_words=1) if word_level else []
     if not phrases:
         # Free-Tier (kein alignment): Text in ~3-Wort-Chunks gleichmaessig
         # ueber die Dauer verteilen. Sieht synced aus auch ohne Whisper.

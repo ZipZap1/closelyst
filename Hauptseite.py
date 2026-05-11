@@ -743,7 +743,7 @@ with tab_video:
                 if not is_pro:
                     rate_limit.consume_free_quota()
                 video_bytes = output_path.read_bytes()
-                st.video(video_bytes, autoplay=True, muted=True)
+                st.video(video_bytes, autoplay=False)
                 st.download_button(
                     "Video herunterladen",
                     video_bytes,
