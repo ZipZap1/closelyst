@@ -33,14 +33,31 @@ import ai_image
 import rate_limit
 
 _ASSETS = Path(__file__).parent / "assets"
+
+# Sidebar-Toggle via Python-Re-Render-Hack (Streamlit hat keine direkte API).
+# Quelle: discuss.streamlit.io/t/44338 - die collapse/expand-Animation ist
+# frontend-only, JS-Clicks erreichen Streamlits React-State nicht.
+# Loesung: Queue von set_page_config-Aufrufen mit Force-Cycle.
+if "sb_handler" not in st.session_state:
+    st.session_state.sb_handler = []
+
+_sb_state = "expanded"
+if st.session_state.sb_handler:
+    _sb_state = st.session_state.sb_handler.pop(0)
+
 st.set_page_config(
     page_title="VoiceClip - TikToks ohne Gesicht in 60 Sekunden | closelyst.com",
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    # Sidebar von Anfang an expanded (auch auf Mobile), damit User
-    # die Pro-Box sofort sieht ohne erst den Toggle finden zu muessen.
-    initial_sidebar_state="expanded",
+    initial_sidebar_state=_sb_state,
 )
+
+# Falls noch State-Wechsel queued: rerunne damit der Force-Cycle (collapsed → expanded)
+# tatsaechlich beim Frontend ankommt.
+if st.session_state.sb_handler:
+    import time as _t
+    _t.sleep(0.1)
+    st.rerun()
 
 # SEO-Metadata via JavaScript in <head> injizieren. Streamlit's
 # set_page_config setzt nur title/icon, fuer og:image und Description
@@ -292,68 +309,29 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
 
-# Event-Delegation fuer Sidebar-Open: inline onclick funktioniert nicht
-# weil Streamlit HTML als React rendered und onclick als React-Prop
-# interpretiert. Stattdessen ein globaler Click-Listener auf document der
-# data-action="open-sidebar" Elemente erkennt.
-st.markdown(
-    """
-    <script>
-    if (!window._closelystSidebarHandler) {
-      window._closelystSidebarHandler = true;
-      document.addEventListener('click', function(e) {
-        const trigger = e.target.closest('[data-action="open-sidebar"]');
-        if (!trigger) return;
-        e.preventDefault();
-        const icons = document.querySelectorAll('[data-testid="stIconMaterial"]');
-        let toggled = false;
-        for (const ic of icons) {
-          const t = (ic.textContent || '').trim();
-          if (t === 'keyboard_double_arrow_right' || t === 'keyboard_double_arrow_left') {
-            const parentBtn = ic.closest('button');
-            if (parentBtn) { parentBtn.click(); toggled = true; break; }
-          }
-        }
-        if (!toggled) {
-          const fallbacks = [
-            'button[data-testid="stSidebarCollapseButton"]',
-            'button[data-testid="collapsedControl"]'
-          ];
-          for (const sel of fallbacks) {
-            const t = document.querySelector(sel);
-            if (t) { t.click(); break; }
-          }
-        }
-        const sb = document.querySelector('[data-testid="stSidebar"]');
-        if (sb) sb.scrollIntoView({behavior: 'smooth', block: 'start'});
-      });
-    }
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
+# Callback fuer den Sidebar-Open-Button. Queue 2 State-Wechsel
+# (collapsed → expanded), das forciert Streamlit zum Frontend-Update.
+def _open_sidebar():
+    st.session_state.sb_handler.extend(["collapsed", "expanded"])
 
-# Pro-CTA-Banner mit Sidebar-Open-Button.
+# Pro-CTA-Banner mit Sidebar-Open-Button (Python-Callback).
 if not is_pro and (_remove_url or _pro_url):
-    st.markdown(
-        """
-        <div style="display: flex; align-items: center; gap: 0.8em;
-                    padding: 0.7em 1em; border-radius: 8px;
-                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-                    margin: 0.5em 0 0.8em 0; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
+    _cta_text, _cta_btn = st.columns([3, 1])
+    with _cta_text:
+        st.markdown(
+            """
+            <div style="padding: 0.7em 1em; border-radius: 8px;
+                        background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                        font-size: 0.95em; color: #0f172a;">
                 <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
             </div>
-            <button data-action="open-sidebar"
-                style="padding: 0.55em 1em; border-radius: 999px; border: none;
-                       background: #8b5cf6; color: white; font-weight: 600;
-                       font-size: 0.9em; cursor: pointer; white-space: nowrap;">
-                Pro-Optionen anzeigen →
-            </button>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
+    with _cta_btn:
+        st.button("Pro-Optionen anzeigen →",
+                  on_click=_open_sidebar, key="open_sb_main",
+                  use_container_width=True, type="primary")
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
@@ -771,17 +749,9 @@ with tab_video:
                         st.success("Pro-Export ohne Wasserzeichen.")
                 else:
                     st.info("Wasserzeichen ist im Video. Pro-Optionen ab 2,99 EUR.")
-                    st.markdown(
-                        """
-                        <button data-action="open-sidebar"
-                            style="padding: 0.6em 1.2em; border-radius: 999px; border: none;
-                                   background: #8b5cf6; color: white; font-weight: 600;
-                                   font-size: 0.95em; cursor: pointer; margin-top: 0.3em;">
-                            Pro-Optionen anzeigen →
-                        </button>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+                    st.button("Pro-Optionen anzeigen →",
+                              on_click=_open_sidebar, key="open_sb_post",
+                              type="primary")
             except Exception as exc:
                 st.error(f"Fehler: {exc}")
 
