@@ -125,18 +125,18 @@ st.markdown(
         height: auto !important;
     }
 
-    /* Top-padding reduzieren weil Header weg ist */
+    /* Top-padding: genug Atemraum vor dem Logo */
     .main .block-container,
     section[data-testid="stMain"] > div,
     .stApp [data-testid="stAppViewContainer"] > section > div {
-        padding-top: 0.75rem !important;
+        padding-top: 2.5rem !important;
     }
 
-    /* Mobile: noch tighter, kein wasted vertical space */
+    /* Mobile: etwas weniger aber genug Luft */
     @media (max-width: 640px) {
         .main .block-container,
         section[data-testid="stMain"] > div {
-            padding-top: 0.5rem !important;
+            padding-top: 1.5rem !important;
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
         }
