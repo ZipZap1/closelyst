@@ -46,7 +46,7 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 render_lang_toggle()
@@ -169,16 +169,28 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar wird komplett ausgeblendet. License-Key-Eingabe lebt jetzt
-# inline auf der Hauptseite als Expander. Streamlit-eigener Sidebar-
-# Chevron war unzuverlaessig (verschwand nach Schliessen), Custom-
-# Toggle-Button triggerte React-Handler nicht. Direkter Pfad: keine
-# Sidebar = kein Toggle-Problem.
+# Sidebar bleibt sichtbar und permanent offen. User-Wahl: bevorzugt
+# Sidebar-Look. Close-Button entfernt damit der broken Chevron-
+# Reopen-Bug nicht greifen kann (Sidebar bleibt einfach immer offen).
+# WARNUNG: auf Mobile deckt die Sidebar einen Grossteil des Screens
+# ab. Falls Mobile-UX leidet, hier zurueck zu collapsed + inline
+# Expander wechseln.
 st.markdown(
     """
     <style>
-    section[data-testid="stSidebar"] { display: none !important; }
-    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+    /* Close-Button in der Sidebar weg, damit User sie nicht schliessen
+       koennen (sonst kommen sie nicht mehr drauf wegen Reopen-Bug) */
+    [data-testid="stSidebarCollapseButton"],
+    section[data-testid="stSidebar"] button[kind="header"],
+    section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] {
+        display: none !important;
+    }
+    /* Falls Streamlit-CSS die Sidebar trotzdem auf 0 width animiert
+       (z.B. bei kleinen Viewports), forcieren wir sie offen */
+    section[data-testid="stSidebar"][aria-expanded="false"] {
+        transform: translateX(0) !important;
+        margin-left: 0 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -191,11 +203,11 @@ _qs = st.query_params
 if _qs.get("status") == "success":
     st.success(t(
         "**Zahlung erfolgreich.** Du bekommst gleich eine E-Mail von Polar mit "
-        "deinem Lizenz-Schlüssel. Füge ihn unten unter "
-        "'Pro-Schlüssel einlösen' ein und klick 'Einlösen'.",
+        "deinem Lizenz-Schlüssel. Füge ihn links in der Sidebar unter "
+        "'Lizenz-Schlüssel' ein und klick 'Einlösen'.",
         "**Payment successful.** You'll receive an email from Polar with your "
-        "license key shortly. Paste it below under "
-        "'Redeem Pro key' and click 'Redeem'.",
+        "license key shortly. Paste it into the sidebar on the left under "
+        "'License key' and click 'Redeem'.",
     ))
     _checkout_id = _qs.get("checkout_id", "")
     if _checkout_id:
@@ -295,8 +307,9 @@ _remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
 _pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
 
 
-# ----- License / Pro Block: jetzt inline auf Hauptseite (war Sidebar) -----
-with st.expander(t("Pro-Schlüssel einlösen", "Redeem Pro key"), expanded=False):
+# ----- Sidebar: license / pro -----
+with st.sidebar:
+    st.subheader(t("Pro / Wasserzeichen entfernen", "Pro / Remove watermark"))
     license_key_input = st.text_input(
         t("Lizenz-Schlüssel", "License key"),
         type="password",
@@ -875,7 +888,7 @@ with tab_video:
         if needs_upload and uploaded_media is None:
             _missing.append(t("Datei hochladen", "upload a file"))
         if needs_pro and not is_pro:
-            _missing.append(t("Pro-Schlüssel oben einlösen", "redeem a Pro key above"))
+            _missing.append(t("Pro-Schlüssel in Seitenleiste eintragen", "enter a Pro key in the sidebar"))
         if _missing:
             st.caption(t("Noch nötig: ", "Still needed: ") + ", ".join(_missing))
 
@@ -895,9 +908,9 @@ with tab_video:
         elif _rem <= 2:
             st.warning(t(
                 f"Nur noch **{_rem} von {_lim}** kostenlosen Videos heute übrig. "
-                f"Für unbegrenzt: Pro ab 2,99 EUR oben auf der Seite.",
+                f"Für unbegrenzt: Pro ab 2,99 EUR (siehe Sidebar).",
                 f"Only **{_rem} of {_lim}** free videos left today. "
-                f"For unlimited: Pro from €2.99 above on the page.",
+                f"For unlimited: Pro from €2.99 (see sidebar).",
             ))
         elif _rem < _lim:
             st.info(t(
@@ -1104,8 +1117,8 @@ with tab_enhance:
     )
     if not is_pro:
         st.warning(t(
-            "Funktion nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.",
-            "Pro only. Enter a Pro key above or buy one.",
+            "Funktion nur für Pro. Trag oben in der Seitenleiste einen Pro-Schlüssel ein oder kauf einen.",
+            "Pro only. Enter a Pro key in the sidebar above or buy one.",
         ))
     enhance_btn = st.button(
         t("Bild verbessern", "Enhance image"),
