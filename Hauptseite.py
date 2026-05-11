@@ -237,7 +237,7 @@ with st.sidebar:
 
 
 # ----- Onboarding -----
-with st.expander("Wie funktioniert das?", expanded=False):
+with st.expander("Wie funktioniert das?", expanded=True):
     st.markdown(
         """
 1. Text eintippen
@@ -453,34 +453,41 @@ with tab_video:
         if not is_pro:
             st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
 
-    # Caption-Style anpassen. Defaults sind TikTok-typisch: gelber Text,
-    # größerer Font, schwarze halbtransparente Box am unteren Rand.
-    with st.expander("Caption-Style anpassen (TikTok-Defaults)"):
-        cs_col1, cs_col2 = st.columns(2)
-        with cs_col1:
-            caption_text_color = st.color_picker(
-                "Text-Farbe", value="#fbbf24", key="caption_text_color"
+    # Caption-Style: TikTok-typische Defaults (gelber Text, große Box unten).
+    # Free-User bekommen diese fix, Pro-User können sie anpassen.
+    caption_text_color = "#fbbf24"
+    caption_bg_color = "#000000"
+    caption_bg_alpha = 200
+    caption_font_size = 80
+    caption_position = "bottom"
+
+    if is_pro:
+        with st.expander("Caption-Style anpassen (Pro)"):
+            cs_col1, cs_col2 = st.columns(2)
+            with cs_col1:
+                caption_text_color = st.color_picker(
+                    "Text-Farbe", value=caption_text_color, key="caption_text_color"
+                )
+                caption_position = st.selectbox(
+                    "Position",
+                    options=["bottom", "center", "top"],
+                    index=0,
+                    key="caption_position",
+                )
+            with cs_col2:
+                caption_bg_color = st.color_picker(
+                    "Box-Farbe (Hintergrund hinter Text)", value=caption_bg_color, key="caption_bg_color"
+                )
+                caption_font_size = st.select_slider(
+                    "Font-Größe",
+                    options=[48, 56, 64, 72, 80, 96],
+                    value=caption_font_size,
+                    key="caption_font_size",
+                )
+            caption_bg_alpha = st.slider(
+                "Box-Deckkraft", min_value=0, max_value=255, value=caption_bg_alpha, key="caption_bg_alpha",
+                help="0 = keine Box (nur Text), 255 = volle Box.",
             )
-            caption_position = st.selectbox(
-                "Position",
-                options=["bottom", "center", "top"],
-                index=0,
-                key="caption_position",
-            )
-        with cs_col2:
-            caption_bg_color = st.color_picker(
-                "Box-Farbe (Hintergrund hinter Text)", value="#000000", key="caption_bg_color"
-            )
-            caption_font_size = st.select_slider(
-                "Font-Größe",
-                options=[48, 56, 64, 72, 80, 96],
-                value=80,
-                key="caption_font_size",
-            )
-        caption_bg_alpha = st.slider(
-            "Box-Deckkraft", min_value=0, max_value=255, value=200, key="caption_bg_alpha",
-            help="0 = keine Box (nur Text), 255 = volle Box.",
-        )
 
     # Pre-flight: enable button only when all prereqs are met
     needs_upload = footage_mode in (FOOTAGE_UPLOAD, FOOTAGE_LIPSYNC)
