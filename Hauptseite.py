@@ -208,7 +208,7 @@ if _qs.get("status") == "success":
             f"Checkout reference: {_checkout_id[:8]}...",
         ))
 
-st.image(str(_ASSETS / "logo.svg"), width=180)
+st.image(str(_ASSETS / "logo.svg"), width=260)
 
 # Founder-Social-Pills: TikTok + GitHub kompakt unter Logo. Kleinere
 # Padding/Gap-Werte damit Above-The-Fold Platz fuer Pro-CTA bleibt.
@@ -259,7 +259,7 @@ _hero_cta = t(
 st.markdown(
     f"""
     <div style="margin-top: -0.2em; margin-bottom: 0.3em;">
-        <h1 style="font-size: 1.7em; font-weight: 800; line-height: 1.15;
+        <h1 style="font-size: 2.2em; font-weight: 800; line-height: 1.15;
                    margin: 0; color: #0f172a;">
             {_hero_headline}
         </h1>
