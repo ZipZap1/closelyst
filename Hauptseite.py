@@ -102,10 +102,21 @@ st.markdown(
 # playsinline-Attribut fehlt. st.video() setzt es nicht, also patchen
 # wir alle <video>-Elemente per MutationObserver. Greift fuer Demo-
 # Video und Post-Generation-Preview gleichzeitig.
+#
+# Zusaetzlich: Streamlit fadet den Sidebar-Open/Close-Chevron via inline
+# styles aus (CSS !important wird von inline styles ueberschrieben).
+# Der gleiche MutationObserver-Tick forciert opacity:1 zurueck, damit
+# die Pfeile permanent sichtbar bleiben.
 st.markdown(
     """
     <script>
     (function() {
+      const sidebarSelectors = [
+        '[data-testid="stSidebarCollapsedControl"]',
+        '[data-testid="stSidebarCollapseButton"]',
+        '[data-testid="collapsedControl"]',
+        'button[kind="header"]'
+      ];
       const patch = () => {
         document.querySelectorAll('video').forEach(v => {
           if (!v.hasAttribute('playsinline')) {
@@ -113,10 +124,21 @@ st.markdown(
             v.setAttribute('webkit-playsinline', '');
           }
         });
+        sidebarSelectors.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => {
+            if (el.style.opacity !== '1') el.style.setProperty('opacity', '1', 'important');
+            if (el.style.visibility !== 'visible') el.style.setProperty('visibility', 'visible', 'important');
+            el.style.setProperty('transition', 'none', 'important');
+            el.style.setProperty('pointer-events', 'auto', 'important');
+          });
+        });
       };
       patch();
       const obs = new MutationObserver(patch);
-      obs.observe(document.body, {childList: true, subtree: true});
+      obs.observe(document.body, {
+        childList: true, subtree: true,
+        attributes: true, attributeFilter: ['style', 'class']
+      });
     })();
     </script>
     """,
