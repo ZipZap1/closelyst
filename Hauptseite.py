@@ -159,14 +159,18 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
+# Demo prefers external URL (CDN), falls back to bundled assets/demo.mp4
+# wenn die im Repo liegt. So oder so: Demo erscheint sobald File / URL da ist.
 _demo_url = os.environ.get("DEMO_VIDEO_URL", "").strip()
+_demo_local = _ASSETS / "demo.mp4"
+_demo_source = _demo_url if _demo_url else (str(_demo_local) if _demo_local.exists() else "")
 _ph_url = os.environ.get("PRODUCTHUNT_URL", "").strip()
-if _demo_url or _ph_url:
+if _demo_source or _ph_url:
     cols = st.columns([3, 1])
     with cols[0]:
-        if _demo_url:
-            with st.expander("Demo: VoiceClip in Aktion (1 Min)", expanded=False):
-                st.video(_demo_url)
+        if _demo_source:
+            with st.expander("Demo: VoiceClip in Aktion (20 Sek)", expanded=True):
+                st.video(_demo_source, autoplay=True, muted=True, loop=True)
     with cols[1]:
         if _ph_url:
             st.link_button("Auf ProductHunt", _ph_url, use_container_width=True)
