@@ -322,11 +322,16 @@ with tab_video:
     ai_prompt_override = ""
     if footage_mode == FOOTAGE_UPLOAD:
         uploaded_media = st.file_uploader(
-            "Datei (Video: .mp4 .mov / Bild: .jpg .png .webp, max 50 MB, wird auf 9:16 gecroppt)",
+            "Datei (Video: .mp4 .mov / Bild: .jpg .png .webp, max 50 MB)",
             type=["mp4", "mov", "m4v", "jpg", "jpeg", "png", "webp"],
             accept_multiple_files=False,
             key="upload_media_uploader",
+            help="Wird auf 9:16 gecroppt. Tipp: unter 10 MB = schneller Upload. Video lokal mit ffmpeg komprimieren falls zu gross.",
         )
+        if uploaded_media is not None:
+            _mb = len(uploaded_media.getvalue()) / 1_000_000
+            if _mb > 15:
+                st.caption(f"Datei: {_mb:.1f} MB. Tipp: unter 10 MB = deutlich schnellerer Upload.")
         if uploaded_media is not None and uploaded_media.name.lower().endswith(
             (".jpg", ".jpeg", ".png", ".webp")
         ):
@@ -346,7 +351,12 @@ with tab_video:
             type=["mp4", "mov", "m4v"],
             accept_multiple_files=False,
             key="lipsync_uploader",
+            help="Tipp: unter 10 MB = schneller Upload. Video lokal komprimieren falls zu gross.",
         )
+        if uploaded_media is not None:
+            _mb = len(uploaded_media.getvalue()) / 1_000_000
+            if _mb > 15:
+                st.caption(f"Datei: {_mb:.1f} MB. Tipp: unter 10 MB = deutlich schnellerer Upload.")
         st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden. Lip-Sync ist rechenintensiv und zählt 7x ins Pro-Limit (~28 Lip-Syncs pro Zyklus möglich).")
         if not is_pro:
             st.warning("Nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.")
