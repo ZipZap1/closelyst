@@ -39,34 +39,36 @@ st.set_page_config(
     layout="centered",
 )
 
-# Hide Streamlit-Branding aggressiv: jede bekannte Variante von Header,
-# Hamburger-Menue, Status-Widget, Footer wird ausgeblendet.
+# Hide Streamlit-Branding: kompletten Header-Block plus alle bekannten
+# Toolbar/Menu-Varianten via CSS+JS nuken. CSS-Selectors aendern sich
+# zwischen Streamlit-Versionen, deswegen breit gefasst plus JavaScript-
+# Fallback der die Elemente per MutationObserver wegnimmt.
 st.markdown(
     """
     <style>
-    /* Header und Hamburger-Menue (alle Streamlit-Versionen) */
+    /* Header komplett raus - inkl. aller Kinder (Hamburger, Deploy, Status) */
+    .stApp > header,
     header,
+    div[class*="stAppHeader"],
     [data-testid="stHeader"],
     [data-testid="stToolbar"],
+    [data-testid="stToolbarActions"],
     [data-testid="stMainMenu"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
     [data-testid="stDeployButton"],
     #MainMenu,
     button[kind="header"],
-    button[title="Open menu"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        opacity: 0 !important;
-    }
-
-    /* Footer ("Made with Streamlit") */
+    button[title="Open menu"],
+    /* Footer */
     footer,
     [data-testid="stFooter"],
     a[href*="streamlit.io"] {
         display: none !important;
         visibility: hidden !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
 
     /* Top-padding reduzieren weil Header weg ist */
@@ -75,6 +77,26 @@ st.markdown(
         padding-top: 1.5rem !important;
     }
     </style>
+
+    <script>
+    // Fallback: falls Streamlit den Header dynamisch (re-)rendert, JS nimmt
+    // ihn wieder weg. Observer laeuft 30 Sek, dann disconnected.
+    (function() {
+      const KILL = [
+        'header', '[data-testid="stHeader"]', '[data-testid="stToolbar"]',
+        '[data-testid="stToolbarActions"]', '[data-testid="stMainMenu"]',
+        '[data-testid="stDeployButton"]', '[data-testid="stStatusWidget"]',
+        '[data-testid="stDecoration"]', '#MainMenu', 'footer'
+      ];
+      const nuke = () => KILL.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => el.remove());
+      });
+      nuke();
+      const obs = new MutationObserver(nuke);
+      obs.observe(document.body, {childList: true, subtree: true});
+      setTimeout(() => obs.disconnect(), 30000);
+    })();
+    </script>
     """,
     unsafe_allow_html=True,
 )
