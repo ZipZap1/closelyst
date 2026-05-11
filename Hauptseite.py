@@ -144,38 +144,21 @@ st.markdown(
     </style>
 
     <script>
-    // Spezifische Streamlit-Branding-Items entfernen, OHNE den Sidebar-Toggle
-    // zu killen. Nur 3-Punkte-Menue + dessen Popups, nicht den ganzen Header.
+    // Minimal-Strategie: nur Print- und Made-with-Streamlit-Menu-Items
+    // entfernen wenn sie als Menu-Items auftauchen. KEIN Container-Removal,
+    // KEINE aggressive Cleanup, damit Sidebar nicht versehentlich kaputt geht.
     (function() {
-      const KILL_SELECTORS = [
-        '[data-testid="stToolbar"]', '[data-testid="stToolbarActions"]',
-        '[data-testid="stMainMenu"]', '[data-testid="stMainMenuPopover"]',
-        '[data-testid="stMainMenuList"]', '[data-testid="stDeployButton"]',
-        '[data-testid="stStatusWidget"]', '[data-testid="stDecoration"]',
-        '#MainMenu', 'footer',
-        'button[aria-label="More options"]',
-        'button[aria-label="Open the main menu"]',
-        'button[data-testid="stMainMenu"]'
-      ];
-      const KILL_TEXTS = ['Print', 'Made with Streamlit', 'Record screen',
-                           'Record a screencast'];
-
       const nuke = () => {
-        KILL_SELECTORS.forEach(sel => {
-          document.querySelectorAll(sel).forEach(el => el.remove());
-        });
-        document.querySelectorAll('div, span, li, button, a').forEach(el => {
+        document.querySelectorAll('[role="menuitem"], li[role="menuitem"]').forEach(el => {
           const t = (el.textContent || '').trim();
-          if (KILL_TEXTS.some(kt => t === kt || t.startsWith(kt + ' '))) {
-            const p = el.closest('[role="menu"], [role="menuitem"], li');
-            if (p) p.remove();
-            else el.remove();
+          if (t === 'Print' || t.startsWith('Made with Streamlit')
+              || t === 'Record screen' || t === 'Record a screencast') {
+            el.remove();
           }
         });
       };
       nuke();
-      const obs = new MutationObserver(nuke);
-      obs.observe(document.body, {childList: true, subtree: true});
+      new MutationObserver(nuke).observe(document.body, {childList: true, subtree: true});
     })();
     </script>
     """,
