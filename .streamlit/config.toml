@@ -9,6 +9,11 @@ maxUploadSize = 50
 # call isn't "strictly necessary".
 gatherUsageStats = false
 
+[client]
+# Hide the Streamlit hamburger menu (3-dot menu) komplett fuer End-User.
+# "viewer" versteckt Print, Record-Screen, "Made with Streamlit".
+toolbarMode = "viewer"
+
 [theme]
 # Indigo-violet-pink brand palette, matching assets/logo.svg.
 # Light theme so the gradient logo and captions stay readable.
