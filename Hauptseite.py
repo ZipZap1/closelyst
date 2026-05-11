@@ -756,16 +756,39 @@ with tab_video:
                     else:
                         st.success("Pro-Export ohne Wasserzeichen.")
                 else:
-                    st.info("Wasserzeichen ist im Video. Für 2,99 EUR entfernen:")
-                    _wm_col1, _wm_col2 = st.columns(2)
-                    with _wm_col1:
-                        if _remove_url:
-                            st.link_button("2,99 €: Wasserzeichen weg",
-                                _remove_url, type="primary", use_container_width=True)
-                    with _wm_col2:
-                        if _pro_url:
-                            st.link_button("8,99 €/Mo: Unlimitiert",
-                                _pro_url, use_container_width=True)
+                    st.info("Wasserzeichen ist im Video. Pro-Optionen ab 2,99 EUR.")
+                    st.markdown(
+                        """
+                        <button id="open-sidebar-btn-post"
+                            style="padding: 0.6em 1.2em; border-radius: 999px; border: none;
+                                   background: #8b5cf6; color: white; font-weight: 600;
+                                   font-size: 0.95em; cursor: pointer; margin-top: 0.3em;">
+                            Pro-Optionen anzeigen →
+                        </button>
+                        <script>
+                        (function() {
+                          const btn = document.getElementById('open-sidebar-btn-post');
+                          if (!btn || btn.dataset.bound) return;
+                          btn.dataset.bound = '1';
+                          btn.addEventListener('click', function() {
+                            const triggers = [
+                              'button[data-testid="stSidebarCollapseButton"]',
+                              'button[data-testid="collapsedControl"]',
+                              'div[data-testid="collapsedControl"] button',
+                              'button[aria-label*="sidebar" i]'
+                            ];
+                            for (const sel of triggers) {
+                              const t = document.querySelector(sel);
+                              if (t) { t.click(); break; }
+                            }
+                            const sb = document.querySelector('[data-testid="stSidebar"]');
+                            if (sb) sb.scrollIntoView({behavior: 'smooth', block: 'start'});
+                          });
+                        })();
+                        </script>
+                        """,
+                        unsafe_allow_html=True,
+                    )
             except Exception as exc:
                 st.error(f"Fehler: {exc}")
 
