@@ -36,33 +36,6 @@ from i18n import t, render_lang_toggle, get_lang
 
 _ASSETS = Path(__file__).parent / "assets"
 
-# Sidebar-Toggle via Query-Param + Double-Rerun-Pattern. Auf Mobile
-# bricht Streamlits Button + position:fixed wegen Parent-Overflow.
-# Loesung: HTML-Anchor direkt in document.body (siehe weiter unten),
-# Click navigiert zu ?sb_toggle=1, Python toggelt + clearts.
-import time as _time
-
-if "sidebar_handler" not in st.session_state:
-    st.session_state.sidebar_handler = []
-if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "collapsed"
-
-# Burger-Click kommt als ?sb_toggle=1 rein -> Handler-Queue fuettern,
-# Param wieder entfernen. Doppel-Rerun-Pattern (forum-validated)
-# sorgt fuer zuverlaessiges Frontend-Sync.
-if st.query_params.get("sb_toggle"):
-    if st.session_state.sidebar_state == "expanded":
-        st.session_state.sidebar_handler.extend(["expanded", "collapsed"])
-    else:
-        st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
-    del st.query_params["sb_toggle"]
-
-if st.session_state.sidebar_handler:
-    _state_for_this_run = st.session_state.sidebar_handler.pop(0)
-    st.session_state.sidebar_state = _state_for_this_run
-else:
-    _state_for_this_run = st.session_state.sidebar_state
-
 # Page title used by browser tab. Set once at config time, so we read the
 # lang at module-load from query params directly (session_state isn't ready
 # yet at this point).
@@ -73,24 +46,8 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state=_state_for_this_run,
+    initial_sidebar_state="collapsed",
 )
-
-# Falls Queue noch was hat: zweiter Rerun nachschieben mit kurzem
-# Delay damit Streamlit-Backend den ersten State-Sync abschliessen kann
-if st.session_state.sidebar_handler:
-    _time.sleep(0.05)
-    st.rerun()
-
-
-def _toggle_sidebar():
-    """Queue Force-Toggle: aktueller-State + gewuenschter. Erster Pop
-    signalisiert Streamlit dass sich was aendert (no-op fuer State),
-    zweiter Pop setzt den Ziel-State. Auf Mobile zwingend noetig."""
-    if st.session_state.sidebar_state == "expanded":
-        st.session_state.sidebar_handler.extend(["expanded", "collapsed"])
-    else:
-        st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
 
 # render_lang_toggle() wird am Ende der Seite gerendert (siehe Footer)
 # damit er fest im Dokumentfluss am Bottom sitzt statt floating fixed.
@@ -225,162 +182,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar-State-Toggle via Streamlit-native Pattern.
-# Streamlits Default-Chevron ist verbuggt; wir geben dem User einen
-# eigenen Open-Button auf der Hauptseite wenn die Sidebar zu ist,
-# und einen Close-Button INSIDE der Sidebar wenn sie auf ist. Beide
-# rufen _toggle_sidebar() auf, was st.session_state.sidebar_state
-# flippt; set_page_config liest das beim Auto-Rerun nach on_click.
-st.markdown(
-    """
-    <style>
-    /* Streamlit-eigene Sidebar-Collapse-Controls aggressiv aus. Testid
-       varriiert pro Streamlit-Version, daher Multi-Selector mit
-       Substring-Match. Sonst flackern Streamlits eigene Pfeile durch
-       und kollidieren mit unserem Python-Toggle. */
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid*="SidebarCollapse"],
-    [data-testid*="sidebarCollapse"],
-    section[data-testid="stSidebar"] button[kind="header"],
-    section[data-testid="stSidebar"] button[kind="headerNoPadding"],
-    section[data-testid="stSidebar"] [data-testid="baseButton-header"],
-    section[data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"],
-    header[data-testid="stHeader"] button[kind="header"],
-    button[aria-label*="sidebar" i],
-    button[aria-label*="ollapse" i] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-    /* Open-Button-Container (≡). Streamlit-Ancestors haben Transforms
-       die position:fixed gegen den Parent verankern statt gegen den
-       Viewport (transform creates containing block fuer fixed). Daher:
-       transform/filter/perspective auf Ancestors hart ueberschreiben. */
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"],
-    [data-testid="stMainBlockContainer"],
-    section[data-testid="stMain"],
-    .stApp,
-    .main {
-        transform: none !important;
-        filter: none !important;
-        perspective: none !important;
-    }
-
-    /* st.container(key=) traegt Klasse st-key-{key} auf das Wrapper-Div */
-    .st-key-vc_sb_open_wrap {
-        position: fixed !important;
-        top: 0.5rem !important;
-        left: 0.5rem !important;
-        z-index: 999999 !important;
-        width: auto !important;
-    }
-    .st-key-vc_sb_open_wrap button {
-        background: #8b5cf6 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 700 !important;
-        font-size: 22px !important;
-        line-height: 1 !important;
-        padding: 0 !important;
-        width: 48px !important;
-        height: 48px !important;
-        min-height: 48px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35) !important;
-        /* Mobile-Touch: explizit klickbar machen */
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        -webkit-user-select: none !important;
-        user-select: none !important;
-        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.4) !important;
-        cursor: pointer !important;
-    }
-    .st-key-vc_sb_open_wrap {
-        pointer-events: auto !important;
-    }
-    /* Sicherstellen dass Streamlit-Default-Chevron auf Mobile nicht
-       ueber dem Burger sitzt und Taps abfaengt */
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"],
-    button[kind="header"],
-    button[kind="headerNoPadding"] {
-        display: none !important;
-        pointer-events: none !important;
-    }
-    .st-key-vc_sb_open_wrap button:hover {
-        background: #7c3aed !important;
-    }
-    .st-key-vc_sb_open_wrap button:active {
-        transform: scale(0.94);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# Burger als HTML-Anchor in parent document.body injiziert. Streamlit
-# strippt <script>-Tags aus st.markdown - daher st.components.v1.html
-# (iframe, scripts laufen garantiert). Iframe greift via window.parent
-# in die echte Seite, hängt den Anchor an parent.body.
-# Anchor in body umgeht Mobile-position:fixed-Probleme (kein Overflow-
-# Parent zwischen Anchor und body).
-_existing_qp = "&".join(f"{k}={v}" for k, v in st.query_params.items() if k != "sb_toggle")
-_burger_href = "?sb_toggle=1" + (f"&{_existing_qp}" if _existing_qp else "")
-st.components.v1.html(
-    f"""
-    <script>
-    (function() {{
-        try {{
-            const parentDoc = window.parent.document;
-            const HREF = {_burger_href!r};
-            let burger = parentDoc.body.querySelector('#vc-burger-native');
-            if (!burger) {{
-                burger = parentDoc.createElement('a');
-                burger.id = 'vc-burger-native';
-                burger.setAttribute('aria-label', 'Toggle sidebar');
-                burger.innerHTML = '≡';
-                burger.style.cssText = [
-                    'position:fixed',
-                    'top:0.5rem',
-                    'left:0.5rem',
-                    'z-index:2147483647',
-                    'width:48px',
-                    'height:48px',
-                    'background:#8b5cf6',
-                    'color:white',
-                    'border-radius:12px',
-                    'display:flex',
-                    'align-items:center',
-                    'justify-content:center',
-                    'font-size:22px',
-                    'font-weight:700',
-                    'text-decoration:none',
-                    'box-shadow:0 2px 6px rgba(139,92,246,0.35)',
-                    'cursor:pointer',
-                    'touch-action:manipulation',
-                    '-webkit-tap-highlight-color:rgba(139,92,246,0.4)',
-                    '-webkit-user-select:none',
-                    'user-select:none'
-                ].join(';');
-                parentDoc.body.appendChild(burger);
-            }}
-            burger.href = HREF;
-            burger.target = '_top';
-        }} catch (e) {{
-            console.error('Burger-Inject Fehler:', e);
-        }}
-    }})();
-    </script>
-    """,
-    height=0,
-)
+# Sidebar: Streamlit-Default-Verhalten. Kein Custom-Toggle, kein
+# eigener Burger, kein CSS-Hide auf den Chevron. Streamlit handlet
+# alles selbst inklusive Open/Close-Pfeil. Trade-off: Chevron kann
+# in einigen Streamlit-Versionen flackern (bekannte Bugs), aber wir
+# nehmen das in Kauf fuer simple Wartbarkeit.
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
@@ -495,15 +301,6 @@ _pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
 
 # ----- Sidebar: license / pro -----
 with st.sidebar:
-    # Close-Button als erstes Element in der Sidebar - User kann sie
-    # damit zuverlaessig zumachen (Streamlits Default-Chevron ist
-    # verbuggt). Bei Klick auf Hauptseite erscheint dann der Open-Button.
-    st.button(
-        "✕",
-        key="vc_sb_close",
-        on_click=_toggle_sidebar,
-        help=t("Sidebar zumachen", "Close sidebar"),
-    )
     st.subheader(t("Pro / Wasserzeichen entfernen", "Pro / Remove watermark"))
     license_key_input = st.text_input(
         t("Lizenz-Schlüssel", "License key"),
