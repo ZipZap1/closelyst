@@ -292,21 +292,34 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
 
-# Pro-CTA-Banner direkt im Main-Content (sichtbar auch wenn Sidebar zu).
-# Nur fuer Free-User, ueber Generate-Form damit's vor dem Kauf-Moment steht.
+# Pro-CTA-Banner mit Sidebar-Trigger-Button. Klick oeffnet die Sidebar
+# via JS, dort steht das eigentliche Pro-Box.
 if not is_pro and (_remove_url or _pro_url):
-    _cta_col1, _cta_col2, _cta_col3 = st.columns([3, 1, 1])
-    with _cta_col1:
-        st.markdown(
-            "**Pro freischalten:** ElevenLabs Premium-Voices, word-synced "
-            "Captions, Voice-Cloning, kein Wasserzeichen."
-        )
-    with _cta_col2:
-        if _remove_url:
-            st.link_button("2,99 €", _remove_url, help="Einmalig - 1 Video, 24h gültig", use_container_width=True)
-    with _cta_col3:
-        if _pro_url:
-            st.link_button("8,99 €/Mo", _pro_url, help="Unlimitiert, monatlich kündbar", use_container_width=True)
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; gap: 0.8em;
+                    padding: 0.7em 1em; border-radius: 8px;
+                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                    margin: 0.5em 0 0.8em 0; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
+                <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
+            </div>
+            <button onclick="
+                var btn = document.querySelector('[data-testid=&quot;stSidebarCollapseButton&quot;]')
+                    || document.querySelector('[data-testid=&quot;collapsedControl&quot;]')
+                    || document.querySelector('[aria-label=&quot;Open sidebar&quot;]')
+                    || document.querySelector('button[kind=&quot;header&quot;]');
+                if (btn) btn.click();
+                document.querySelector('[data-testid=&quot;stSidebar&quot;]')?.scrollIntoView({behavior: 'smooth'});
+            " style="padding: 0.55em 1em; border-radius: 999px; border: none;
+                     background: #8b5cf6; color: white; font-weight: 600;
+                     font-size: 0.9em; cursor: pointer; white-space: nowrap;">
+                Pro-Optionen anzeigen →
+            </button>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
