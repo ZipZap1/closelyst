@@ -362,7 +362,7 @@ def compose(audio_path, video_path, output_path, tmp_dir,
         wm_idx = 2 + len(phrase_pngs)
         wm_start = max(0.0, duration - 1.5)
         parts.append(
-            f"[{current_label}][{wm_idx}:v]overlay=(W-w)/2:H-h-110"
+            f"[{current_label}][{wm_idx}:v]overlay=(W-w)/2:(H-h)/2"
             f":enable='gte(t,{wm_start:.2f})'"
             "[vfinal]"
         )
