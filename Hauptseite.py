@@ -276,13 +276,32 @@ st.markdown(
         font-size: 22px !important;
         line-height: 1 !important;
         padding: 0 !important;
-        width: 44px !important;
-        height: 44px !important;
-        min-height: 44px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-height: 48px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35) !important;
+        /* Mobile-Touch: explizit klickbar machen */
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.4) !important;
+        cursor: pointer !important;
+    }
+    .st-key-vc_sb_open_wrap {
+        pointer-events: auto !important;
+    }
+    /* Sicherstellen dass Streamlit-Default-Chevron auf Mobile nicht
+       ueber dem Burger sitzt und Taps abfaengt */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarCollapsedControl"],
+    button[kind="header"],
+    button[kind="headerNoPadding"] {
+        display: none !important;
+        pointer-events: none !important;
     }
     .st-key-vc_sb_open_wrap button:hover {
         background: #7c3aed !important;
