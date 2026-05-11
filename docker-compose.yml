@@ -1,3 +1,16 @@
+# Closelyst Streamlit-App fuer den VPS.
+#
+# Konzept: backend-caddy (Caddy-Container des pruefungscoach-Stacks)
+# uebernimmt SSL + Reverse-Proxy fuer beide Domains. Dieser Stack hier
+# liefert NUR den Streamlit-Container und haengt sich ins existierende
+# backend_default Netzwerk ein, sodass backend-caddy ihn als
+# "closelyst-app:8501" erreichen kann.
+#
+# Im pruefungscoach Caddyfile muss ein closelyst.com-Block stehen:
+#   closelyst.com, www.closelyst.com {
+#       reverse_proxy closelyst-app:8501
+#   }
+
 services:
   streamlit:
     build: .
@@ -8,34 +21,12 @@ services:
     expose:
       - "8501"
     networks:
-      - web
-    # Optional: explicit memory limit. Hostinger entry-tier VPS hat oft 2-4 GB.
-    # Streamlit + ffmpeg brauchen unter Last bis zu 1 GB. Anpassen falls noetig.
+      - backend_default
     deploy:
       resources:
         limits:
           memory: 1500M
 
-  caddy:
-    image: caddy:2.8-alpine
-    container_name: closelyst-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - web
-    depends_on:
-      - streamlit
-
 networks:
-  web:
-    driver: bridge
-
-volumes:
-  caddy_data:
-  caddy_config:
+  backend_default:
+    external: true
