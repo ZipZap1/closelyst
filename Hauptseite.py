@@ -150,21 +150,31 @@ st.markdown(
             padding-right: 0.75rem !important;
         }
     }
-    /* Streamlit Header-Bar nimmt 3.75rem oben. Statt komplett zu
-       verstecken (killt Sidebar-Toggle): zero-height + transparent
-       Background, damit der Sidebar-Open/Close-Chevron sichtbar bleibt
-       aber kein Vertikal-Platz mehr fressen. */
+    /* Streamlit Header-Bar nimmt 3.75rem oben. zero-height +
+       transparent + overflow:visible damit der Sidebar-Chevron als
+       Child sichtbar bleibt aber keinen Vertikal-Platz frisst. */
     header[data-testid="stHeader"] {
         height: 0 !important;
         min-height: 0 !important;
         background: transparent !important;
-    }
-    /* Sicherstellen dass die Sidebar-Collapse-Controls sichtbar bleiben */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"] {
-        display: block !important;
-        visibility: visible !important;
+        overflow: visible !important;
         z-index: 999990 !important;
+    }
+    /* Streamlit fadet den Chevron via opacity/transition aus. Hart
+       forcieren dass er sichtbar bleibt. Multiple Testids weil Naming
+       sich zwischen Streamlit-Versionen aendert. */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="collapsedControl"],
+    [data-testid="baseButton-headerNoPadding"],
+    button[kind="header"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transition: none !important;
+        transform: none !important;
+        z-index: 999991 !important;
     }
     /* Toolbar rechts (3-Punkte, Deploy) versteckt; entfernt Konflikt
        mit unserem Language-Toggle, der oben rechts sitzt. */
