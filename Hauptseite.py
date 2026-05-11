@@ -169,6 +169,60 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Custom Sidebar-Toggle. Streamlits Default-Chevron verschwindet in
+# diversen Versionen wenn die Sidebar zu ist. Eigener Floating-Button
+# oben links der zuverlaessig Streamlits internen (oft unsichtbaren)
+# Toggle programmatisch klickt. Mehrere Selector-Varianten weil
+# Testids zwischen Streamlit-Versionen wechseln.
+st.markdown(
+    """
+    <style>
+    .vc-sb-toggle {
+        position: fixed; top: 0.55rem; left: 0.6rem;
+        z-index: 2147483646;
+        width: 40px; height: 40px; padding: 0;
+        border-radius: 12px; border: none;
+        background: #8b5cf6; color: white;
+        cursor: pointer;
+        font-size: 22px; font-weight: 700; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.3);
+        touch-action: manipulation;
+        transition: transform 0.1s;
+    }
+    .vc-sb-toggle:hover { background: #7c3aed; }
+    .vc-sb-toggle:active { transform: scale(0.94); }
+    @media (max-width: 640px) {
+        .vc-sb-toggle { width: 42px; height: 42px; font-size: 24px; }
+    }
+    </style>
+    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Menu">&#8801;</button>
+    <script>
+    (function() {
+        var btn = document.getElementById('vc-sb-toggle');
+        if (!btn || btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', function() {
+            var selectors = [
+                '[data-testid="stSidebarCollapsedControl"] button',
+                '[data-testid="stSidebarCollapseButton"]',
+                '[data-testid="stSidebarCollapsedControl"]',
+                'button[kind="header"]',
+                'header[data-testid="stHeader"] button',
+                'section[data-testid="stSidebar"] button[kind="header"]'
+            ];
+            for (var i = 0; i < selectors.length; i++) {
+                var el = document.querySelector(selectors[i]);
+                if (el) { el.click(); return; }
+            }
+        });
+    })();
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
 # direkt sehen dass Kauf durchging und wo der License-Key landet.
