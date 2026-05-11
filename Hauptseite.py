@@ -125,18 +125,6 @@ st.markdown(
         height: auto !important;
     }
 
-    /* Sidebar auf die rechte Seite verschieben (statt links) */
-    [data-testid="stAppViewContainer"] > section:first-of-type,
-    .stApp > div[data-testid="stAppViewContainer"] {
-        flex-direction: row-reverse !important;
-    }
-    /* Sidebar-Toggle auch nach rechts spiegeln */
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] {
-        left: auto !important;
-        right: 0.5rem !important;
-    }
-
     /* Top-padding reduzieren weil Header weg ist */
     .main .block-container,
     section[data-testid="stMain"] > div,
