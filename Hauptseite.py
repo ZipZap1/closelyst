@@ -195,6 +195,12 @@ def cached_validate(key):
     return license_mod.validate_license_key(key)
 
 
+# Polar-Checkout-URLs auf Modul-Level: gleicher Wert wird in Sidebar
+# UND in Main-Content (Pro-CTA-Block) genutzt.
+_remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
+_pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
+
+
 # ----- Sidebar: license / pro -----
 with st.sidebar:
     st.subheader("Pro / Wasserzeichen entfernen")
@@ -264,14 +270,12 @@ with st.sidebar:
 
     st.divider()
 
-    remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
-    pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
     st.caption("Beide Pakete schalten alle Pro-Features frei: ElevenLabs Premium-Voices, word-synced Captions, Voice-Cloning, kein Wasserzeichen.")
-    if remove_url:
-        st.link_button("2,99 EUR: Einmalig (1 Video)", remove_url)
-    if pro_url:
-        st.link_button("8,99 EUR/Mo: Unlimitiert", pro_url)
-    if not remove_url and not pro_url:
+    if _remove_url:
+        st.link_button("2,99 EUR: Einmalig (1 Video)", _remove_url)
+    if _pro_url:
+        st.link_button("8,99 EUR/Mo: Unlimitiert", _pro_url)
+    if not _remove_url and not _pro_url:
         st.caption("Polar-Checkout-URLs in .env eintragen, dann erscheinen die Checkout-Buttons.")
 
 
@@ -287,6 +291,22 @@ with st.expander("Wie funktioniert das?", expanded=True):
 Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
+
+# Pro-CTA-Banner direkt im Main-Content (sichtbar auch wenn Sidebar zu).
+# Nur fuer Free-User, ueber Generate-Form damit's vor dem Kauf-Moment steht.
+if not is_pro and (_remove_url or _pro_url):
+    _cta_col1, _cta_col2, _cta_col3 = st.columns([3, 1, 1])
+    with _cta_col1:
+        st.markdown(
+            "**Pro freischalten:** ElevenLabs Premium-Voices, word-synced "
+            "Captions, Voice-Cloning, kein Wasserzeichen."
+        )
+    with _cta_col2:
+        if _remove_url:
+            st.link_button("2,99 €", _remove_url, help="Einmalig - 1 Video, 24h gültig", use_container_width=True)
+    with _cta_col3:
+        if _pro_url:
+            st.link_button("8,99 €/Mo", _pro_url, help="Unlimitiert, monatlich kündbar", use_container_width=True)
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
@@ -703,7 +723,16 @@ with tab_video:
                     else:
                         st.success("Pro-Export ohne Wasserzeichen.")
                 else:
-                    st.info("Wasserzeichen ist im Video. Für 2,99 EUR entfernen siehe Seitenleiste.")
+                    st.info("Wasserzeichen ist im Video. Für 2,99 EUR entfernen:")
+                    _wm_col1, _wm_col2 = st.columns(2)
+                    with _wm_col1:
+                        if _remove_url:
+                            st.link_button("2,99 €: Wasserzeichen weg",
+                                _remove_url, type="primary", use_container_width=True)
+                    with _wm_col2:
+                        if _pro_url:
+                            st.link_button("8,99 €/Mo: Unlimitiert",
+                                _pro_url, use_container_width=True)
             except Exception as exc:
                 st.error(f"Fehler: {exc}")
 
