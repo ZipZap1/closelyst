@@ -46,7 +46,7 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 render_lang_toggle()
@@ -169,109 +169,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Custom Sidebar-Toggle. Streamlits Default-Chevron verschwindet in
-# diversen Versionen wenn die Sidebar zu ist. Eigener Floating-Button
-# oben links der zuverlaessig Streamlits internen (oft unsichtbaren)
-# Toggle programmatisch klickt. Mehrere Selector-Varianten weil
-# Testids zwischen Streamlit-Versionen wechseln.
+# Sidebar wird komplett ausgeblendet. License-Key-Eingabe lebt jetzt
+# inline auf der Hauptseite als Expander. Streamlit-eigener Sidebar-
+# Chevron war unzuverlaessig (verschwand nach Schliessen), Custom-
+# Toggle-Button triggerte React-Handler nicht. Direkter Pfad: keine
+# Sidebar = kein Toggle-Problem.
 st.markdown(
     """
     <style>
-    .vc-sb-toggle {
-        position: fixed; top: 0.55rem; left: 0.6rem;
-        z-index: 2147483646;
-        width: 40px; height: 40px; padding: 0;
-        border-radius: 12px; border: none;
-        background: #8b5cf6; color: white;
-        cursor: pointer;
-        font-size: 22px; font-weight: 700; line-height: 1;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
-        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.3);
-        touch-action: manipulation;
-        transition: transform 0.1s;
-    }
-    .vc-sb-toggle:hover { background: #7c3aed; }
-    .vc-sb-toggle:active { transform: scale(0.94); }
-    @media (max-width: 640px) {
-        .vc-sb-toggle { width: 42px; height: 42px; font-size: 24px; }
-    }
+    section[data-testid="stSidebar"] { display: none !important; }
+    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
     </style>
-    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Menu">&#8801;</button>
-    <script>
-    (function() {
-        var btn = document.getElementById('vc-sb-toggle');
-        if (!btn || btn.dataset.bound) return;
-        btn.dataset.bound = '1';
-
-        function fireRealClick(el) {
-            // Streamlit-React reagiert oft nicht auf simples .click(),
-            // braucht volle Event-Sequenz mit Koordinaten.
-            var rect = el.getBoundingClientRect();
-            var opts = {
-                bubbles: true, cancelable: true, view: window,
-                clientX: rect.left + rect.width / 2,
-                clientY: rect.top + rect.height / 2,
-                button: 0
-            };
-            ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(type) {
-                try { el.dispatchEvent(new MouseEvent(type, opts)); } catch (e) {}
-            });
-            // Plus expliziter Element-Methode-Call falls Event-Dispatch
-            // nicht reicht.
-            try { el.click(); } catch (e) {}
-        }
-
-        function findToggleTarget() {
-            var selectors = [
-                '[data-testid="stSidebarCollapsedControl"] button',
-                '[data-testid="stSidebarCollapsedControl"]',
-                '[data-testid="stSidebarCollapseButton"]',
-                'section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"]',
-                'section[data-testid="stSidebar"] button[kind="header"]',
-                'button[kind="header"]',
-                'header[data-testid="stHeader"] button'
-            ];
-            for (var i = 0; i < selectors.length; i++) {
-                var el = document.querySelector(selectors[i]);
-                if (el) {
-                    console.log('[VC] sidebar toggle target:', selectors[i], el);
-                    return el;
-                }
-            }
-            console.warn('[VC] no sidebar toggle button found');
-            return null;
-        }
-
-        function fallbackToggleSidebar() {
-            // Direkter DOM-Hack falls kein Streamlit-Button gefunden.
-            var sb = document.querySelector('section[data-testid="stSidebar"]');
-            if (!sb) { console.warn('[VC] no sidebar element'); return; }
-            var isOpen = sb.getAttribute('aria-expanded') !== 'false'
-                && sb.offsetWidth > 50;
-            if (isOpen) {
-                sb.style.setProperty('transform', 'translateX(-100%)', 'important');
-                sb.style.setProperty('margin-left', '-244px', 'important');
-                sb.setAttribute('aria-expanded', 'false');
-                console.log('[VC] sidebar -> closed (fallback)');
-            } else {
-                sb.style.setProperty('transform', 'translateX(0)', 'important');
-                sb.style.setProperty('margin-left', '0', 'important');
-                sb.setAttribute('aria-expanded', 'true');
-                console.log('[VC] sidebar -> open (fallback)');
-            }
-        }
-
-        btn.addEventListener('click', function() {
-            var target = findToggleTarget();
-            if (target) {
-                fireRealClick(target);
-            } else {
-                fallbackToggleSidebar();
-            }
-        });
-    })();
-    </script>
     """,
     unsafe_allow_html=True,
 )
@@ -283,11 +191,11 @@ _qs = st.query_params
 if _qs.get("status") == "success":
     st.success(t(
         "**Zahlung erfolgreich.** Du bekommst gleich eine E-Mail von Polar mit "
-        "deinem Lizenz-Schlüssel. Füge ihn links in der Sidebar unter "
-        "'Lizenz-Schlüssel' ein und klick 'Einlösen'.",
+        "deinem Lizenz-Schlüssel. Füge ihn unten unter "
+        "'Pro-Schlüssel einlösen' ein und klick 'Einlösen'.",
         "**Payment successful.** You'll receive an email from Polar with your "
-        "license key shortly. Paste it into the sidebar on the left under "
-        "'License key' and click 'Redeem'.",
+        "license key shortly. Paste it below under "
+        "'Redeem Pro key' and click 'Redeem'.",
     ))
     _checkout_id = _qs.get("checkout_id", "")
     if _checkout_id:
@@ -387,9 +295,8 @@ _remove_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_REMOVE_WATERMARK")
 _pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
 
 
-# ----- Sidebar: license / pro -----
-with st.sidebar:
-    st.subheader(t("Pro / Wasserzeichen entfernen", "Pro / Remove watermark"))
+# ----- License / Pro Block: jetzt inline auf Hauptseite (war Sidebar) -----
+with st.expander(t("Pro-Schlüssel einlösen", "Redeem Pro key"), expanded=False):
     license_key_input = st.text_input(
         t("Lizenz-Schlüssel", "License key"),
         type="password",
@@ -968,7 +875,7 @@ with tab_video:
         if needs_upload and uploaded_media is None:
             _missing.append(t("Datei hochladen", "upload a file"))
         if needs_pro and not is_pro:
-            _missing.append(t("Pro-Schlüssel in Seitenleiste eintragen", "enter a Pro key in the sidebar"))
+            _missing.append(t("Pro-Schlüssel oben einlösen", "redeem a Pro key above"))
         if _missing:
             st.caption(t("Noch nötig: ", "Still needed: ") + ", ".join(_missing))
 
@@ -988,9 +895,9 @@ with tab_video:
         elif _rem <= 2:
             st.warning(t(
                 f"Nur noch **{_rem} von {_lim}** kostenlosen Videos heute übrig. "
-                f"Für unbegrenzt: Pro ab 2,99 EUR (siehe Sidebar).",
+                f"Für unbegrenzt: Pro ab 2,99 EUR oben auf der Seite.",
                 f"Only **{_rem} of {_lim}** free videos left today. "
-                f"For unlimited: Pro from €2.99 (see sidebar).",
+                f"For unlimited: Pro from €2.99 above on the page.",
             ))
         elif _rem < _lim:
             st.info(t(
@@ -1197,8 +1104,8 @@ with tab_enhance:
     )
     if not is_pro:
         st.warning(t(
-            "Funktion nur für Pro. Trag oben in der Seitenleiste einen Pro-Schlüssel ein oder kauf einen.",
-            "Pro only. Enter a Pro key in the sidebar above or buy one.",
+            "Funktion nur für Pro. Trag oben einen Pro-Schlüssel ein oder kauf einen.",
+            "Pro only. Enter a Pro key above or buy one.",
         ))
     enhance_btn = st.button(
         t("Bild verbessern", "Enhance image"),
