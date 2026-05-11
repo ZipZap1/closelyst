@@ -169,12 +169,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar bleibt sichtbar und permanent offen. User-Wahl: bevorzugt
-# Sidebar-Look. Close-Button entfernt damit der broken Chevron-
-# Reopen-Bug nicht greifen kann (Sidebar bleibt einfach immer offen).
-# WARNUNG: auf Mobile deckt die Sidebar einen Grossteil des Screens
-# ab. Falls Mobile-UX leidet, hier zurueck zu collapsed + inline
-# Expander wechseln.
+# Sidebar bleibt im DOM mit forcierter Breite (siehe CSS unten), Toggle
+# laeuft komplett ueber inline-display:none statt ueber Streamlits
+# React-State. Damit umgehen wir den Chevron-Reopen-Bug komplett.
 st.markdown(
     """
     <style>
@@ -217,7 +214,64 @@ st.markdown(
             min-width: 80vw !important;
         }
     }
+
+    /* Floating Sidebar-Toggle: setzt direkt inline display:none auf
+       die Sidebar statt Streamlits React zu fragen. Funktioniert
+       deterministisch ohne JS-Crashes. */
+    .vc-sb-toggle {
+        position: fixed; top: 0.55rem; left: 0.6rem;
+        z-index: 2147483646;
+        width: 40px; height: 40px; padding: 0;
+        border-radius: 12px; border: none;
+        background: #8b5cf6; color: white;
+        cursor: pointer;
+        font-size: 22px; font-weight: 700; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.3);
+        touch-action: manipulation;
+        transition: transform 0.1s, background 0.15s;
+    }
+    .vc-sb-toggle:hover { background: #7c3aed; }
+    .vc-sb-toggle:active { transform: scale(0.94); }
+    @media (max-width: 640px) {
+        .vc-sb-toggle { width: 42px; height: 42px; font-size: 24px; }
+    }
     </style>
+    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Sidebar toggle">&#8801;</button>
+    <script>
+    (function() {
+        var btn = document.getElementById('vc-sb-toggle');
+        if (!btn || btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+
+        function applyState() {
+            var sb = document.querySelector('section[data-testid="stSidebar"]');
+            if (!sb) return;
+            var hidden = sessionStorage.getItem('vc-sb-hidden') === '1';
+            if (hidden) {
+                sb.style.setProperty('display', 'none', 'important');
+                btn.innerHTML = '&#8801;';
+                btn.setAttribute('aria-label', 'Open sidebar');
+            } else {
+                sb.style.removeProperty('display');
+                btn.innerHTML = '&times;';
+                btn.setAttribute('aria-label', 'Close sidebar');
+            }
+        }
+
+        btn.addEventListener('click', function() {
+            var hidden = sessionStorage.getItem('vc-sb-hidden') === '1';
+            sessionStorage.setItem('vc-sb-hidden', hidden ? '0' : '1');
+            applyState();
+        });
+
+        // Apply state on load + on every DOM change (Streamlit re-renders)
+        applyState();
+        var obs = new MutationObserver(applyState);
+        obs.observe(document.body, {childList: true, subtree: true});
+    })();
+    </script>
     """,
     unsafe_allow_html=True,
 )
