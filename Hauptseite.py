@@ -215,9 +215,18 @@ st.markdown(
         }
     }
 
-    /* Floating Sidebar-Toggle: setzt direkt inline display:none auf
-       die Sidebar statt Streamlits React zu fragen. Funktioniert
-       deterministisch ohne JS-Crashes. */
+    /* Body-Class steuert Sidebar-Visibility. CSS mit !important
+       gewinnt zuverlaessig gegen Streamlit-internes Inline-Style. */
+    body.vc-sb-hidden section[data-testid="stSidebar"],
+    body.vc-sb-hidden section[data-testid="stSidebar"] > div {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+    }
+
+    /* Floating Sidebar-Toggle */
     .vc-sb-toggle {
         position: fixed; top: 0.55rem; left: 0.6rem;
         z-index: 2147483646;
@@ -238,38 +247,43 @@ st.markdown(
         .vc-sb-toggle { width: 42px; height: 42px; font-size: 24px; }
     }
     </style>
-    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Sidebar toggle">&#8801;</button>
+    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Sidebar toggle">&times;</button>
     <script>
     (function() {
         var btn = document.getElementById('vc-sb-toggle');
         if (!btn || btn.dataset.bound) return;
         btn.dataset.bound = '1';
 
-        function applyState() {
-            var sb = document.querySelector('section[data-testid="stSidebar"]');
-            if (!sb) return;
-            var hidden = sessionStorage.getItem('vc-sb-hidden') === '1';
-            if (hidden) {
-                sb.style.setProperty('display', 'none', 'important');
-                btn.innerHTML = '&#8801;';
-                btn.setAttribute('aria-label', 'Open sidebar');
-            } else {
-                sb.style.removeProperty('display');
-                btn.innerHTML = '&times;';
-                btn.setAttribute('aria-label', 'Close sidebar');
-            }
+        function refreshBtn() {
+            var hidden = document.body.classList.contains('vc-sb-hidden');
+            btn.innerHTML = hidden ? '&#8801;' : '&times;';
+            btn.setAttribute('aria-label', hidden ? 'Open sidebar' : 'Close sidebar');
         }
 
+        // Initial state aus sessionStorage holen (ueberlebt Streamlit-Reruns)
+        if (sessionStorage.getItem('vc-sb-hidden') === '1') {
+            document.body.classList.add('vc-sb-hidden');
+        }
+        refreshBtn();
+
         btn.addEventListener('click', function() {
-            var hidden = sessionStorage.getItem('vc-sb-hidden') === '1';
-            sessionStorage.setItem('vc-sb-hidden', hidden ? '0' : '1');
-            applyState();
+            var willHide = !document.body.classList.contains('vc-sb-hidden');
+            document.body.classList.toggle('vc-sb-hidden', willHide);
+            sessionStorage.setItem('vc-sb-hidden', willHide ? '1' : '0');
+            refreshBtn();
         });
 
-        // Apply state on load + on every DOM change (Streamlit re-renders)
-        applyState();
-        var obs = new MutationObserver(applyState);
-        obs.observe(document.body, {childList: true, subtree: true});
+        // Streamlit-Reruns: body-Class kann verloren gehen wenn React
+        // body manipuliert. Re-apply via MutationObserver auf body.
+        var obs = new MutationObserver(function() {
+            var shouldHide = sessionStorage.getItem('vc-sb-hidden') === '1';
+            var isHidden = document.body.classList.contains('vc-sb-hidden');
+            if (shouldHide !== isHidden) {
+                document.body.classList.toggle('vc-sb-hidden', shouldHide);
+                refreshBtn();
+            }
+        });
+        obs.observe(document.body, {attributes: true, attributeFilter: ['class']});
     })();
     </script>
     """,
