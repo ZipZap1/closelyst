@@ -2,6 +2,7 @@
 
 Streamlit single-page app. Text in, 1080x1920 portrait video out.
 """
+import base64
 import os
 import tempfile
 import uuid
@@ -349,12 +350,75 @@ _demo_url = os.environ.get("DEMO_VIDEO_URL", "").strip()
 _demo_local = _ASSETS / "demo.mp4"
 _demo_source = _demo_url if _demo_url else (str(_demo_local) if _demo_local.exists() else "")
 _ph_url = os.environ.get("PRODUCTHUNT_URL", "").strip()
+
+
+def _demo_video_html(source):
+    """Autoplay-stumm + Klick-fuer-Ton (Instagram-Pattern). Browser blocken
+    Autoplay mit Audio bis zur ersten User-Interaktion; muted Autoplay laeuft
+    immer. Erster Klick auf das Video entmutet und zaehlt als Interaktion."""
+    if source.startswith(("http://", "https://")):
+        src = source
+    else:
+        try:
+            with open(source, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode("ascii")
+            src = f"data:video/mp4;base64,{b64}"
+        except OSError:
+            return None
+    return f"""
+<div style="position: relative; max-width: 340px; margin: 0 auto;
+            aspect-ratio: 9/16; border-radius: 12px; overflow: hidden;
+            background: #000; cursor: pointer;" id="vc-demo-wrap">
+    <video id="vc-demo" autoplay muted loop playsinline
+           style="width: 100%; height: 100%; object-fit: cover; display: block;"
+           src="{src}"></video>
+    <div id="vc-unmute" style="position: absolute; inset: 0;
+                                display: flex; align-items: center;
+                                justify-content: center; pointer-events: none;
+                                background: linear-gradient(180deg,
+                                    rgba(0,0,0,0) 55%, rgba(0,0,0,0.45));
+                                color: white;
+                                font-family: -apple-system, BlinkMacSystemFont,
+                                              'Segoe UI', sans-serif;">
+        <div style="background: rgba(0,0,0,0.72); padding: 9px 16px;
+                    border-radius: 999px; display: flex;
+                    align-items: center; gap: 8px; font-size: 13px;
+                    font-weight: 600;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM3 9v6h4l5 5V4L7 9H3z"/>
+                <line x1="2" y1="2" x2="22" y2="22" stroke="white" stroke-width="2.5"/>
+            </svg>
+            <span>Klick für Ton</span>
+        </div>
+    </div>
+</div>
+<script>
+(function() {{
+    var wrap = document.getElementById('vc-demo-wrap');
+    var v = document.getElementById('vc-demo');
+    var overlay = document.getElementById('vc-unmute');
+    if (!wrap || !v) return;
+    v.play().catch(function() {{}});
+    wrap.addEventListener('click', function() {{
+        v.muted = !v.muted;
+        if (overlay) overlay.style.display = v.muted ? 'flex' : 'none';
+        v.play().catch(function() {{}});
+    }});
+}})();
+</script>
+"""
+
+
 if _demo_source or _ph_url:
     cols = st.columns([3, 1])
     with cols[0]:
         if _demo_source:
             with st.expander("Demo: VoiceClip in Aktion (20 Sek)", expanded=True):
-                st.video(_demo_source, autoplay=True, muted=False, loop=True)
+                html = _demo_video_html(_demo_source)
+                if html:
+                    st.components.v1.html(html, height=620)
+                else:
+                    st.video(_demo_source, autoplay=True, muted=True, loop=True)
     with cols[1]:
         if _ph_url:
             st.link_button("Auf ProductHunt", _ph_url, use_container_width=True)
