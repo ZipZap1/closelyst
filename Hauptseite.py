@@ -39,6 +39,29 @@ st.set_page_config(
     layout="centered",
 )
 
+# Hide Streamlit-Branding: Header-Hamburger, "Made with Streamlit"-Footer,
+# Deploy-Button und sonstige Streamlit-Chrome komplett ausblenden. toolbarMode
+# in config.toml reicht nur fuer den Hamburger, die anderen Elemente brauchen
+# CSS-Injection.
+st.markdown(
+    """
+    <style>
+    #MainMenu, header[data-testid="stHeader"], footer, ._terminalButton_rix23_138,
+    a[href*="streamlit.io"], div[data-testid="stDecoration"],
+    div[data-testid="stToolbar"], div[data-testid="stStatusWidget"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    /* Footer-Bereich am unteren Ende ganz entfernen */
+    .reportview-container .main footer { visibility: hidden; }
+    .stApp > footer { display: none !important; }
+    /* Top-padding reduzieren weil Header weg ist */
+    .block-container { padding-top: 1.5rem !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.image(str(_ASSETS / "logo.svg"), width=260)
 
 # Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
