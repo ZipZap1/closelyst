@@ -47,22 +47,38 @@ def render_lang_toggle():
     st.markdown(
         f"""
 <style>
+/* Streamlit's eigenes 3-Punkte-Menue sitzt oben rechts und faengt
+   sonst die Taps auf Mobile ab. Aus und Toggle ownt den Platz. */
+[data-testid="stMainMenu"] {{ display: none !important; }}
+
 .vc-lang {{
-    position: fixed; top: 0.6rem; right: 0.8rem; z-index: 9999;
+    position: fixed; top: 0.6rem; right: 0.8rem;
+    /* Max-Int z-index, sicher ueber jedem Streamlit-Layer */
+    z-index: 2147483647;
     display: flex; gap: 2px;
     background: rgba(255,255,255,0.96);
-    padding: 3px; border-radius: 999px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    padding: 4px; border-radius: 999px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.18);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    /* Verhindert, dass iOS Long-Press-Selektion den Tap killt */
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: rgba(139, 92, 246, 0.25);
 }}
 .vc-lang a {{
-    padding: 4px 11px; border-radius: 999px;
+    /* Apple HIG: min 44px Touch-Target. 13px Font + Padding kommt hin. */
+    min-width: 44px; min-height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 6px 14px; border-radius: 999px;
     text-decoration: none !important; color: #64748b;
-    font-size: 12px; font-weight: 700;
-    letter-spacing: 0.02em;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.04em;
     transition: all 0.12s;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
 }}
 .vc-lang a:hover {{ color: #0f172a; }}
+.vc-lang a:active {{ transform: scale(0.95); }}
 .vc-lang a.active {{
     background: #8b5cf6; color: white !important;
 }}
@@ -71,10 +87,15 @@ def render_lang_toggle():
     .vc-lang a {{ color: #cbd5e1; }}
     .vc-lang a:hover {{ color: white; }}
 }}
+@media (max-width: 640px) {{
+    /* Auf Mobile etwas tiefer, damit kein Konflikt mit Streamlit-Header */
+    .vc-lang {{ top: 0.5rem; right: 0.5rem; }}
+    .vc-lang a {{ min-width: 48px; min-height: 36px; padding: 7px 16px; font-size: 14px; }}
+}}
 </style>
 <div class="vc-lang">
-    <a href="?lang=de" class="{de_active}" target="_self">DE</a>
-    <a href="?lang=en" class="{en_active}" target="_self">EN</a>
+    <a href="?lang=de" class="{de_active}" target="_self" rel="nofollow">DE</a>
+    <a href="?lang=en" class="{en_active}" target="_self" rel="nofollow">EN</a>
 </div>
 """,
         unsafe_allow_html=True,
