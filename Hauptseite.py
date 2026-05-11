@@ -39,24 +39,41 @@ st.set_page_config(
     layout="centered",
 )
 
-# Hide Streamlit-Branding: Header-Hamburger, "Made with Streamlit"-Footer,
-# Deploy-Button und sonstige Streamlit-Chrome komplett ausblenden. toolbarMode
-# in config.toml reicht nur fuer den Hamburger, die anderen Elemente brauchen
-# CSS-Injection.
+# Hide Streamlit-Branding aggressiv: jede bekannte Variante von Header,
+# Hamburger-Menue, Status-Widget, Footer wird ausgeblendet.
 st.markdown(
     """
     <style>
-    #MainMenu, header[data-testid="stHeader"], footer, ._terminalButton_rix23_138,
-    a[href*="streamlit.io"], div[data-testid="stDecoration"],
-    div[data-testid="stToolbar"], div[data-testid="stStatusWidget"] {
+    /* Header und Hamburger-Menue (alle Streamlit-Versionen) */
+    header,
+    [data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stMainMenu"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stDeployButton"],
+    #MainMenu,
+    button[kind="header"],
+    button[title="Open menu"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        opacity: 0 !important;
+    }
+
+    /* Footer ("Made with Streamlit") */
+    footer,
+    [data-testid="stFooter"],
+    a[href*="streamlit.io"] {
         display: none !important;
         visibility: hidden !important;
     }
-    /* Footer-Bereich am unteren Ende ganz entfernen */
-    .reportview-container .main footer { visibility: hidden; }
-    .stApp > footer { display: none !important; }
+
     /* Top-padding reduzieren weil Header weg ist */
-    .block-container { padding-top: 1.5rem !important; }
+    .main .block-container,
+    section[data-testid="stMain"] > div {
+        padding-top: 1.5rem !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
