@@ -37,6 +37,9 @@ st.set_page_config(
     page_title="VoiceClip - TikToks ohne Gesicht in 60 Sekunden | closelyst.com",
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
+    # Sidebar von Anfang an expanded (auch auf Mobile), damit User
+    # die Pro-Box sofort sieht ohne erst den Toggle finden zu muessen.
+    initial_sidebar_state="expanded",
 )
 
 # SEO-Metadata via JavaScript in <head> injizieren. Streamlit's
