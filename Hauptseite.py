@@ -36,14 +36,23 @@ from i18n import t, render_lang_toggle, get_lang
 
 _ASSETS = Path(__file__).parent / "assets"
 
-# Sidebar-Toggle via session_state. Streamlit 1.46.1+ liest
-# initial_sidebar_state auch auf Reruns korrekt, daher einzelner
-# Rerun ueber on_click reicht. Vorher war Double-Rerun-Pattern noetig
-# wegen Streamlit-Bug, jetzt nicht mehr.
+# Sidebar-Toggle via Double-Rerun-Pattern. Auf Mobile reicht
+# einzelner Rerun nicht zuverlaessig (Streamlit-Frontend syncs
+# initial_sidebar_state nur wenn zwei Cycles hintereinander
+# verschiedene States senden). Queue: erst no-op State, dann
+# Ziel-State. Quelle: Streamlit-Forum.
+import time as _time
+
+if "sidebar_handler" not in st.session_state:
+    st.session_state.sidebar_handler = []
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "collapsed"
 
-_state_for_this_run = st.session_state.sidebar_state
+if st.session_state.sidebar_handler:
+    _state_for_this_run = st.session_state.sidebar_handler.pop(0)
+    st.session_state.sidebar_state = _state_for_this_run
+else:
+    _state_for_this_run = st.session_state.sidebar_state
 
 # Page title used by browser tab. Set once at config time, so we read the
 # lang at module-load from query params directly (session_state isn't ready
@@ -58,12 +67,21 @@ st.set_page_config(
     initial_sidebar_state=_state_for_this_run,
 )
 
+# Falls Queue noch was hat: zweiter Rerun nachschieben mit kurzem
+# Delay damit Streamlit-Backend den ersten State-Sync abschliessen kann
+if st.session_state.sidebar_handler:
+    _time.sleep(0.05)
+    st.rerun()
+
+
 def _toggle_sidebar():
-    """on_click-Callback. Flippt den State; set_page_config liest das
-    beim Auto-Rerun den on_click ausloest."""
-    st.session_state.sidebar_state = (
-        "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
-    )
+    """Queue Force-Toggle: aktueller-State + gewuenschter. Erster Pop
+    signalisiert Streamlit dass sich was aendert (no-op fuer State),
+    zweiter Pop setzt den Ziel-State. Auf Mobile zwingend noetig."""
+    if st.session_state.sidebar_state == "expanded":
+        st.session_state.sidebar_handler.extend(["expanded", "collapsed"])
+    else:
+        st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
 
 render_lang_toggle()
 
