@@ -182,48 +182,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar permanent offen, Close-Button versteckt. Diese Variante
-# hatte als einzige zuverlaessig funktioniert (kein Chevron-Flicker,
-# kein Toggle-Bug, kein Mobile-position-fixed-Problem). User kann
-# Sidebar nicht schliessen - dafuer ist sie auch nicht versteckt
-# und immer erreichbar.
+# Sidebar startet offen, Breite auf 244px (Desktop) / 80vw (Mobile)
+# gezwungen damit der Inhalt korrekt rendert (Streamlit kollabiert sie
+# manchmal auf 0px). Streamlit-Default-Chevrons fuer Open/Close NICHT
+# versteckt - User soll Sidebar via Pfeil auf+zu machen koennen.
 st.markdown(
     """
     <style>
-    /* Close-Button + Chevron weg damit User die Sidebar nicht
-       zumacht (sonst kommt er nicht mehr drauf wegen Streamlit-Bug) */
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"],
-    section[data-testid="stSidebar"] button[kind="header"],
-    section[data-testid="stSidebar"] button[kind="headerNoPadding"] {
-        display: none !important;
-    }
-    /* Sidebar-Breite hart auf 244px (Desktop) / 80vw (Mobile) zwingen.
-       Ohne das kollabiert Streamlit sie manchmal auf 0px und der Text
-       squisht zu 1-Zeichen-Spalten. */
-    section[data-testid="stSidebar"],
-    section[data-testid="stSidebar"][aria-expanded="false"],
     section[data-testid="stSidebar"][aria-expanded="true"] {
         min-width: 244px !important;
         max-width: 244px !important;
         width: 244px !important;
-        transform: translateX(0) !important;
-        margin-left: 0 !important;
-        visibility: visible !important;
     }
-    section[data-testid="stSidebar"] > div:first-child {
+    section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
         width: 244px !important;
         min-width: 244px !important;
     }
     @media (max-width: 640px) {
-        section[data-testid="stSidebar"],
-        section[data-testid="stSidebar"][aria-expanded="false"],
         section[data-testid="stSidebar"][aria-expanded="true"] {
             min-width: 80vw !important;
             max-width: 80vw !important;
             width: 80vw !important;
         }
-        section[data-testid="stSidebar"] > div:first-child {
+        section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
             width: 80vw !important;
             min-width: 80vw !important;
         }
