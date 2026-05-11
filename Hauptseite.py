@@ -273,7 +273,9 @@ with tab_video:
                                 pass
                         st.error(f"Klonen fehlgeschlagen: {msg}")
 
-    # Voice picker: ElevenLabs (full list + cloned voice if any) vs OpenAI (curated 3)
+    # Voice picker: ElevenLabs (full list + cloned voice if any) shown to Pro
+    # users. Free-Tier (OpenAI) ueberspringt den Picker und nutzt Nova als
+    # Default (beste DE-Voice laut Research).
     selected_voice_id = None
     if voice_backend == "elevenlabs":
         voices_data = cached_voices()
@@ -291,10 +293,8 @@ with tab_video:
         else:
             st.info("Keine Stimmen verfügbar.")
     else:
-        openai_voices = voice.list_openai_voices()
-        voice_options = {f"{v['name']} ({v['category']})": v["voice_id"] for v in openai_voices}
-        label = st.selectbox("Stimme", list(voice_options.keys()), key="voice_select_openai")
-        selected_voice_id = voice_options[label]
+        # Free-Tier nutzt fix Nova (OpenAI). Kein Picker um UX schlank zu halten.
+        selected_voice_id = "nova"
 
     # Footage source. Short labels with captions so the choice fits in one
     # glance instead of forcing users to read four long sentences.
