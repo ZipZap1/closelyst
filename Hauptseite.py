@@ -317,19 +317,28 @@ if not is_pro and (_remove_url or _pro_url):
           if (!btn || btn.dataset.bound) return;
           btn.dataset.bound = '1';
           btn.addEventListener('click', function() {
-            // Suche jeden moeglichen Sidebar-Trigger
-            const triggers = [
-              'button[data-testid="stSidebarCollapseButton"]',
-              'button[data-testid="collapsedControl"]',
-              'div[data-testid="collapsedControl"] button',
-              'button[aria-label*="sidebar" i]',
-              'button[aria-label*="Show navigation" i]',
-              '[data-testid="stSidebar"] button[kind="headerNoPadding"]',
-              'section[data-testid="stSidebar"] ~ * button[kind="header"]'
-            ];
-            for (const sel of triggers) {
-              const t = document.querySelector(sel);
-              if (t) { t.click(); break; }
+            // Sidebar-Toggle: das Material-Icon "keyboard_double_arrow_right"
+            // (oder "_left" wenn schon offen) zeigt auf den Toggle-Button.
+            const icons = document.querySelectorAll('[data-testid="stIconMaterial"]');
+            let toggled = false;
+            for (const ic of icons) {
+              const t = (ic.textContent || '').trim();
+              if (t === 'keyboard_double_arrow_right' || t === 'keyboard_double_arrow_left') {
+                const parentBtn = ic.closest('button');
+                if (parentBtn) { parentBtn.click(); toggled = true; break; }
+              }
+            }
+            // Fallback: andere bekannte Selectoren wenn Icon-Suche nichts findet
+            if (!toggled) {
+              const fallbacks = [
+                'button[data-testid="stSidebarCollapseButton"]',
+                'button[data-testid="collapsedControl"]',
+                'div[data-testid="collapsedControl"] button'
+              ];
+              for (const sel of fallbacks) {
+                const t = document.querySelector(sel);
+                if (t) { t.click(); break; }
+              }
             }
             // Scroll auch wenn die Sidebar schon offen ist
             const sb = document.querySelector('[data-testid="stSidebar"]');
