@@ -1,7 +1,18 @@
 """Impressum page. Required under § 5 DDG."""
+import sys
+from pathlib import Path
+
 import streamlit as st
 
+# Parent-dir auf sys.path damit i18n.py importierbar ist (Streamlit pages
+# laufen in pages/ aber das Modul liegt ein Verzeichnis darueber).
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from i18n import render_lang_toggle, render_en_only_disclaimer_for_legal
+
 st.set_page_config(page_title="Impressum - VoiceClip", page_icon="assets/icon.png")
+
+render_lang_toggle()
+render_en_only_disclaimer_for_legal()
 
 st.title("Impressum")
 

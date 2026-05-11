@@ -1,7 +1,16 @@
 """Allgemeine Geschäftsbedingungen für VoiceClip Pro-Käufe."""
+import sys
+from pathlib import Path
+
 import streamlit as st
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from i18n import render_lang_toggle, render_en_only_disclaimer_for_legal
+
 st.set_page_config(page_title="AGB - VoiceClip", page_icon="assets/icon.png")
+
+render_lang_toggle()
+render_en_only_disclaimer_for_legal()
 
 st.title("Allgemeine Geschäftsbedingungen")
 

@@ -5,9 +5,18 @@ e-recht24.de or datenschutz-generator.de before going public.
 The list of third-party services below is the actual VoiceClip stack
 and should be carried over to the generator output.
 """
+import sys
+from pathlib import Path
+
 import streamlit as st
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from i18n import render_lang_toggle, render_en_only_disclaimer_for_legal
+
 st.set_page_config(page_title="Datenschutz - VoiceClip", page_icon="assets/icon.png")
+
+render_lang_toggle()
+render_en_only_disclaimer_for_legal()
 
 st.title("Datenschutzerklärung")
 
