@@ -257,10 +257,11 @@ st.markdown(
 if st.session_state.sidebar_state == "collapsed":
     st.markdown('<div class="vc-sb-open-wrap">', unsafe_allow_html=True)
     st.button(
-        "≡ Pro / Lizenz",
+        "≡",
         key="vc_sb_open",
         on_click=_toggle_sidebar,
         type="primary",
+        help=t("Sidebar öffnen", "Open sidebar"),
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -381,9 +382,10 @@ with st.sidebar:
     # damit zuverlaessig zumachen (Streamlits Default-Chevron ist
     # verbuggt). Bei Klick auf Hauptseite erscheint dann der Open-Button.
     st.button(
-        t("✕ Sidebar zumachen", "✕ Close sidebar"),
+        "✕",
         key="vc_sb_close",
         on_click=_toggle_sidebar,
+        help=t("Sidebar zumachen", "Close sidebar"),
     )
     st.subheader(t("Pro / Wasserzeichen entfernen", "Pro / Remove watermark"))
     license_key_input = st.text_input(
