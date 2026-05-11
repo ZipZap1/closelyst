@@ -354,7 +354,7 @@ if _demo_source or _ph_url:
     with cols[0]:
         if _demo_source:
             with st.expander("Demo: VoiceClip in Aktion (20 Sek)", expanded=True):
-                st.video(_demo_source, autoplay=True, muted=True, loop=True)
+                st.video(_demo_source, autoplay=True, muted=False, loop=True)
     with cols[1]:
         if _ph_url:
             st.link_button("Auf ProductHunt", _ph_url, use_container_width=True)
