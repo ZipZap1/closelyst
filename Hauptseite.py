@@ -47,7 +47,7 @@ import time as _time
 if "sidebar_handler" not in st.session_state:
     st.session_state.sidebar_handler = []
 if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "expanded"
+    st.session_state.sidebar_state = "collapsed"
 
 # Pop next state from queue, falls einer ansteht
 if st.session_state.sidebar_handler:
