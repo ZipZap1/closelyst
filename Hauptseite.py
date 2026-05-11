@@ -90,9 +90,11 @@ st.markdown(
         display: none !important;
     }
 
-    /* Atemraum oben vor dem Logo */
+    /* Atemraum oben vor dem Logo, links nah an der Sidebar */
     .main .block-container {
         padding-top: 1rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
     }
     @media (max-width: 640px) {
         .main .block-container {
