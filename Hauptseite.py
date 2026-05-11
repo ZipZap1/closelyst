@@ -657,22 +657,30 @@ def _demo_video_html(source):
 """
 
 
-if _demo_source or _ph_url:
+def _render_demo_expander():
+    with st.expander(
+        t("Demo: VoiceClip in Aktion (20 Sek)", "Demo: VoiceClip in action (20 sec)"),
+        expanded=True,
+    ):
+        html = _demo_video_html(_demo_source)
+        if html:
+            st.components.v1.html(html, height=620)
+        else:
+            st.video(_demo_source, autoplay=True, muted=True, loop=True)
+
+
+# Layout: nur Spalten wenn BEIDE Elemente da sind. Sonst full-width
+# damit Demo-Expander gleich breit wie "Wie funktioniert das?" rendert.
+if _demo_source and _ph_url:
     cols = st.columns([3, 1])
     with cols[0]:
-        if _demo_source:
-            with st.expander(
-                t("Demo: VoiceClip in Aktion (20 Sek)", "Demo: VoiceClip in action (20 sec)"),
-                expanded=True,
-            ):
-                html = _demo_video_html(_demo_source)
-                if html:
-                    st.components.v1.html(html, height=620)
-                else:
-                    st.video(_demo_source, autoplay=True, muted=True, loop=True)
+        _render_demo_expander()
     with cols[1]:
-        if _ph_url:
-            st.link_button(t("Auf ProductHunt", "On ProductHunt"), _ph_url, use_container_width=True)
+        st.link_button(t("Auf ProductHunt", "On ProductHunt"), _ph_url, use_container_width=True)
+elif _demo_source:
+    _render_demo_expander()
+elif _ph_url:
+    st.link_button(t("Auf ProductHunt", "On ProductHunt"), _ph_url, use_container_width=True)
 
 
 tab_video, tab_enhance = st.tabs([
