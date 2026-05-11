@@ -36,17 +36,26 @@ from i18n import t, render_lang_toggle, get_lang
 
 _ASSETS = Path(__file__).parent / "assets"
 
-# Sidebar-Toggle via Double-Rerun-Pattern. Auf Mobile reicht
-# einzelner Rerun nicht zuverlaessig (Streamlit-Frontend syncs
-# initial_sidebar_state nur wenn zwei Cycles hintereinander
-# verschiedene States senden). Queue: erst no-op State, dann
-# Ziel-State. Quelle: Streamlit-Forum.
+# Sidebar-Toggle via Query-Param + Double-Rerun-Pattern. Auf Mobile
+# bricht Streamlits Button + position:fixed wegen Parent-Overflow.
+# Loesung: HTML-Anchor direkt in document.body (siehe weiter unten),
+# Click navigiert zu ?sb_toggle=1, Python toggelt + clearts.
 import time as _time
 
 if "sidebar_handler" not in st.session_state:
     st.session_state.sidebar_handler = []
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "collapsed"
+
+# Burger-Click kommt als ?sb_toggle=1 rein -> Handler-Queue fuettern,
+# Param wieder entfernen. Doppel-Rerun-Pattern (forum-validated)
+# sorgt fuer zuverlaessiges Frontend-Sync.
+if st.query_params.get("sb_toggle"):
+    if st.session_state.sidebar_state == "expanded":
+        st.session_state.sidebar_handler.extend(["expanded", "collapsed"])
+    else:
+        st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
+    del st.query_params["sb_toggle"]
 
 if st.session_state.sidebar_handler:
     _state_for_this_run = st.session_state.sidebar_handler.pop(0)
@@ -315,19 +324,58 @@ st.markdown(
 )
 
 
-# Burger (≡) IMMER rendern - auch wenn Sidebar gerade offen ist.
-# Conditional Render veraendert DOM-Struktur und resettet andere
-# Expander-States (st.expander vergisst User-Toggle wenn sich DOM
-# davor aendert, bekanntes Streamlit-Verhalten). Wenn Sidebar offen
-# ist, deckt sie den Burger optisch ab - kein Schaden.
-with st.container(key="vc_sb_open_wrap"):
-    st.button(
-        "≡",
-        key="vc_sb_open",
-        on_click=_toggle_sidebar,
-        type="primary",
-        help=t("Sidebar öffnen", "Open sidebar"),
-    )
+# Burger als HTML-Anchor DIREKT in document.body injiziert. Streamlits
+# st.button funktionierte auf Mobile nicht (Parent-Overflow brach
+# position:fixed). Anchor in body umgeht das komplett: native Browser-
+# Navigation, kein React-Handler, kein Overflow-Parent.
+#
+# Query-Param-Erhaltung: Wir lesen bestehende Params (zB lang=en) und
+# bauen die Toggle-URL drumherum, damit DE/EN-Wahl ueberlebt.
+_existing_qp = "&".join(f"{k}={v}" for k, v in st.query_params.items() if k != "sb_toggle")
+_burger_href = "?sb_toggle=1" + (f"&{_existing_qp}" if _existing_qp else "")
+st.markdown(
+    f"""
+    <script>
+    (function() {{
+        const HREF = {_burger_href!r};
+        let burger = document.body.querySelector('#vc-burger-native');
+        if (!burger) {{
+            burger = document.createElement('a');
+            burger.id = 'vc-burger-native';
+            burger.setAttribute('aria-label', 'Toggle sidebar');
+            burger.innerHTML = '≡';
+            burger.style.cssText = [
+                'position:fixed',
+                'top:0.5rem',
+                'left:0.5rem',
+                'z-index:2147483647',
+                'width:48px',
+                'height:48px',
+                'background:#8b5cf6',
+                'color:white',
+                'border-radius:12px',
+                'display:flex',
+                'align-items:center',
+                'justify-content:center',
+                'font-size:22px',
+                'font-weight:700',
+                'text-decoration:none',
+                'box-shadow:0 2px 6px rgba(139,92,246,0.35)',
+                'cursor:pointer',
+                'touch-action:manipulation',
+                '-webkit-tap-highlight-color:rgba(139,92,246,0.4)',
+                '-webkit-user-select:none',
+                'user-select:none'
+            ].join(';');
+            document.body.appendChild(burger);
+        }}
+        burger.href = HREF;
+        burger.target = '_self';
+    }})();
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
