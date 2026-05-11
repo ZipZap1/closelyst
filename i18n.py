@@ -47,9 +47,7 @@ def render_lang_toggle():
     st.markdown(
         f"""
 <style>
-/* Streamlit's eigenes 3-Punkte-Menue sitzt oben rechts und faengt
-   sonst die Taps auf Mobile ab. Aus und Toggle ownt den Platz. */
-[data-testid="stMainMenu"] {{ display: none !important; }}
+/* Streamlit-Default behalten - kein UI-Manipulation hier */
 
 /* Im Dokumentfluss am Seitenende, kein position:fixed. */
 .vc-lang-wrap {{

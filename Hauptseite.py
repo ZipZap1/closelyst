@@ -163,19 +163,11 @@ st.markdown(
         width: 100% !important;
         margin: 0 !important;
     }
-    /* Header bleibt mit seiner Default-Hoehe damit Sidebar-Chevron
-       in seinem natuerlichen Spot sitzt (Streamlit-JS fadet ihn sonst
-       weg und ist nicht via CSS oder MutationObserver zuverlaessig
-       zu fixen). Above-The-Fold-Platz holen wir nur ueber kompakteres
-       Hero/Logo/Social-Pills/Hero-Body. Background transparent damit
-       sich der Header optisch in die Seite einfuegt. */
+    /* Header transparent damit's visuell weniger sticht. Sonst keine
+       Manipulation an Streamlit-Header oder Toolbar - die haben den
+       Sidebar-Chevron drin, anfassen kann ihn brechen. */
     header[data-testid="stHeader"] {
         background: transparent !important;
-    }
-    /* Toolbar rechts (3-Punkte, Deploy) versteckt; entfernt Konflikt
-       mit unserem Language-Toggle, der oben rechts sitzt. */
-    header[data-testid="stHeader"] [data-testid="stToolbar"] {
-        display: none !important;
     }
     </style>
     """,
