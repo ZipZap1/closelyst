@@ -40,8 +40,24 @@ st.set_page_config(
 )
 
 st.image(str(_ASSETS / "logo.svg"), width=260)
-st.caption(
-    "Text rein. TikTok-ready Video raus. AI Voiceover plus Stock-Footage in unter einer Minute."
+
+# Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
+st.markdown(
+    """
+    <div style="margin-top: -0.5em; margin-bottom: 0.5em;">
+        <h1 style="font-size: 2.2em; font-weight: 800; line-height: 1.15;
+                   margin: 0; color: #0f172a;">
+            TikToks ohne Gesicht. Ohne Stimme. Ohne Skills.
+        </h1>
+        <p style="font-size: 1.05em; line-height: 1.5; margin-top: 0.6em;
+                  color: rgba(15, 23, 42, 0.7);">
+            Tipp deinen Text. KI generiert Voiceover, sucht passende Stockvideos,
+            synct Untertitel. Fertiges Video in unter einer Minute.
+            <strong style="color: #8b5cf6;">Kostenlos starten, ohne Account.</strong>
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 
