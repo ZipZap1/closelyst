@@ -108,6 +108,20 @@ st.markdown(
         height: auto !important;
     }
 
+    /* Sidebar-Toggle EXPLIZIT erzwingen sichtbar (Mobile braucht den) */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"],
+    button[kind="headerNoPadding"],
+    [aria-label*="sidebar" i],
+    [aria-label*="Sidebar" i] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        height: auto !important;
+    }
+
     /* Top-padding reduzieren weil Header weg ist */
     .main .block-container,
     section[data-testid="stMain"] > div,
@@ -181,20 +195,21 @@ if _qs.get("status") == "success":
 
 st.image(str(_ASSETS / "logo.svg"), width=260)
 
-# TikTok-CTA direkt im Main-Content (sichtbar auch auf Mobile ohne
-# Sidebar zu oeffnen). Founder-Personality-Block fuer Cross-Channel-Traffic.
+# TikTok-CTA mit Icon. Founder-Personality-Block direkt unter Logo,
+# auch auf Mobile sichtbar (ohne Sidebar zu oeffnen).
 st.markdown(
     """
-    <div style="padding: 0.6em 0.9em; border-radius: 8px;
-                background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-                margin-bottom: 0.6em; font-size: 0.95em;">
-        Solo-Founder, baut KI-Tools.
-        <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
-           style="font-weight: 600; color: #8b5cf6; text-decoration: none;
-                  margin-left: 0.3em;">
-            Folge auf TikTok @haciibrahimdogan →
-        </a>
-    </div>
+    <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
+       style="display: inline-flex; align-items: center; gap: 0.5em;
+              padding: 0.5em 0.9em; border-radius: 999px;
+              background: #0f172a; color: #ffffff; text-decoration: none;
+              font-weight: 600; font-size: 0.9em; margin-bottom: 0.8em;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+             aria-hidden="true" style="flex-shrink: 0;">
+            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+        </svg>
+        @haciibrahimdogan
+    </a>
     """,
     unsafe_allow_html=True,
 )
