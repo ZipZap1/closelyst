@@ -33,31 +33,12 @@ import ai_image
 import rate_limit
 
 _ASSETS = Path(__file__).parent / "assets"
-
-# Sidebar-Toggle via Python-Re-Render-Hack (Streamlit hat keine direkte API).
-# Quelle: discuss.streamlit.io/t/44338 - die collapse/expand-Animation ist
-# frontend-only, JS-Clicks erreichen Streamlits React-State nicht.
-# Loesung: Queue von set_page_config-Aufrufen mit Force-Cycle.
-if "sb_handler" not in st.session_state:
-    st.session_state.sb_handler = []
-
-_sb_state = "expanded"
-if st.session_state.sb_handler:
-    _sb_state = st.session_state.sb_handler.pop(0)
-
 st.set_page_config(
     page_title="VoiceClip - TikToks ohne Gesicht in 60 Sekunden | closelyst.com",
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state=_sb_state,
+    initial_sidebar_state="expanded",
 )
-
-# Falls noch State-Wechsel queued: rerunne damit der Force-Cycle (collapsed → expanded)
-# tatsaechlich beim Frontend ankommt.
-if st.session_state.sb_handler:
-    import time as _t
-    _t.sleep(0.1)
-    st.rerun()
 
 # SEO-Metadata via JavaScript in <head> injizieren. Streamlit's
 # set_page_config setzt nur title/icon, fuer og:image und Description
@@ -309,29 +290,31 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
 
-# Callback fuer den Sidebar-Open-Button. Queue 2 State-Wechsel
-# (collapsed → expanded), das forciert Streamlit zum Frontend-Update.
-def _open_sidebar():
-    st.session_state.sb_handler.extend(["collapsed", "expanded"])
 
-# Pro-CTA-Banner mit Sidebar-Open-Button (Python-Callback).
-if not is_pro and (_remove_url or _pro_url):
-    _cta_text, _cta_btn = st.columns([3, 1])
-    with _cta_text:
-        st.markdown(
-            """
-            <div style="padding: 0.7em 1em; border-radius: 8px;
-                        background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-                        font-size: 0.95em; color: #0f172a;">
+# Pro-CTA-Banner mit direktem Link zum Polar-Abo-Checkout (8,99/Mo).
+# Border-Style fuer cleane Outline-Optik.
+if not is_pro and _pro_url:
+    st.markdown(
+        f"""
+        <div style="padding: 0.9em 1em; border-radius: 8px;
+                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                    margin: 0.5em 0 0.8em 0; display: flex;
+                    align-items: center; gap: 0.8em; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
                 <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with _cta_btn:
-        st.button("Pro-Optionen anzeigen →",
-                  on_click=_open_sidebar, key="open_sb_main",
-                  use_container_width=True, type="primary")
+            <a href="{_pro_url}" target="_blank"
+               style="padding: 0.55em 1.2em; border-radius: 999px;
+                      border: 2px solid #8b5cf6; background: transparent;
+                      color: #8b5cf6; font-weight: 700; font-size: 0.9em;
+                      text-decoration: none; white-space: nowrap;
+                      transition: all 0.15s;">
+                Pro-Abo 8,99 €/Mo →
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
@@ -748,10 +731,21 @@ with tab_video:
                     else:
                         st.success("Pro-Export ohne Wasserzeichen.")
                 else:
-                    st.info("Wasserzeichen ist im Video. Pro-Optionen ab 2,99 EUR.")
-                    st.button("Pro-Optionen anzeigen →",
-                              on_click=_open_sidebar, key="open_sb_post",
-                              type="primary")
+                    st.info("Wasserzeichen ist im Video. Pro-Abo: kein Wasserzeichen, unlimitiert.")
+                    if _pro_url:
+                        st.markdown(
+                            f"""
+                            <a href="{_pro_url}" target="_blank"
+                               style="display: inline-block; padding: 0.6em 1.4em;
+                                      border-radius: 999px; border: 2px solid #8b5cf6;
+                                      background: transparent; color: #8b5cf6;
+                                      font-weight: 700; font-size: 0.95em;
+                                      text-decoration: none; margin-top: 0.4em;">
+                                Pro-Abo 8,99 €/Mo →
+                            </a>
+                            """,
+                            unsafe_allow_html=True,
+                        )
             except Exception as exc:
                 st.error(f"Fehler: {exc}")
 
