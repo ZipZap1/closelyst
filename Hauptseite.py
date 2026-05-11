@@ -198,6 +198,26 @@ st.markdown(
         width: 244px !important;
         min-width: 244px !important;
     }
+    /* Open-Pfeil (Sidebar-zu-State) hart sichtbar halten. Streamlit
+       fadet ihn sonst nach kurzer Zeit weg (bekannter UX-Quirk). */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] button {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transition: none !important;
+    }
+    /* Close-Pfeil (Sidebar-offen-State) ebenfalls sichtbar halten */
+    [data-testid="stSidebarCollapseButton"],
+    section[data-testid="stSidebar"] button[kind="header"],
+    section[data-testid="stSidebar"] button[kind="headerNoPadding"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transition: none !important;
+    }
     @media (max-width: 640px) {
         section[data-testid="stSidebar"][aria-expanded="true"] {
             min-width: 80vw !important;
