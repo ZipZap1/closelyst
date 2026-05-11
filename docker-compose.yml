@@ -1,0 +1,41 @@
+services:
+  streamlit:
+    build: .
+    container_name: closelyst-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8501"
+    networks:
+      - web
+    # Optional: explicit memory limit. Hostinger entry-tier VPS hat oft 2-4 GB.
+    # Streamlit + ffmpeg brauchen unter Last bis zu 1 GB. Anpassen falls noetig.
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: closelyst-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - streamlit
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

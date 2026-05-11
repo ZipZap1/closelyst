@@ -1,0 +1,30 @@
+# Caddy konfiguration fuer closelyst.com
+# Auto-SSL via Let's Encrypt sobald die DNS A-Record auf den VPS zeigt.
+
+closelyst.com, www.closelyst.com {
+    encode gzip
+
+    # Streamlit braucht WebSocket-Support, das macht reverse_proxy automatisch
+    reverse_proxy streamlit:8501 {
+        # Erhalte den originalen Host-Header, sonst macht Streamlit Probleme mit URL-Generierung
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Security-Header
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Streamlit injiziert eigene CSP-Header, hier nichts ueberschreiben
+    }
+
+    # Cache-Buster fuer Streamlit-Statics ist nicht noetig, Streamlit
+    # rendert dynamisch. Logging optional aktivieren falls Debug noetig.
+    # log {
+    #     output file /data/access.log
+    # }
+}
