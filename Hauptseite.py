@@ -137,19 +137,23 @@ st.markdown(
         display: none !important;
     }
 
-    /* Atemraum oben vor dem Logo, links nah an der Sidebar */
+    /* Minimaler Top-Padding, damit der Pro-CTA Above-The-Fold landet */
     .main .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0.25rem !important;
         padding-left: 1.5rem !important;
         padding-right: 1.5rem !important;
     }
     @media (max-width: 640px) {
         .main .block-container {
-            padding-top: 0.5rem !important;
+            padding-top: 0.1rem !important;
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
         }
     }
+    /* Streamlit Header-Bar nimmt 3.75rem oben, das frisst Above-The-Fold-
+       Platz. Komplett verstecken; Sidebar-Toggle bleibt aus dem Sidebar-
+       Element selbst zugaenglich (chevron). */
+    header[data-testid="stHeader"] { display: none !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -175,30 +179,30 @@ if _qs.get("status") == "success":
             f"Checkout reference: {_checkout_id[:8]}...",
         ))
 
-st.image(str(_ASSETS / "logo.svg"), width=260)
+st.image(str(_ASSETS / "logo.svg"), width=180)
 
-# Founder-Social-Pills: TikTok + GitHub direkt unter Logo, auch auf
-# Mobile sichtbar (ohne Sidebar zu oeffnen). Cross-Channel-Traffic.
+# Founder-Social-Pills: TikTok + GitHub kompakt unter Logo. Kleinere
+# Padding/Gap-Werte damit Above-The-Fold Platz fuer Pro-CTA bleibt.
 st.markdown(
     """
-    <div style="display: flex; flex-wrap: wrap; gap: 0.5em; margin-bottom: 0.8em;">
+    <div style="display: flex; flex-wrap: wrap; gap: 0.35em; margin: 0.1em 0 0.4em 0;">
         <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
-           style="display: inline-flex; align-items: center; gap: 0.5em;
-                  padding: 0.5em 0.9em; border-radius: 999px;
+           style="display: inline-flex; align-items: center; gap: 0.4em;
+                  padding: 0.3em 0.7em; border-radius: 999px;
                   background: #0f172a; color: #ffffff; text-decoration: none;
-                  font-weight: 600; font-size: 0.9em;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                  font-weight: 600; font-size: 0.8em;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
                  aria-hidden="true" style="flex-shrink: 0;">
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
             </svg>
             @haciibrahimdogan
         </a>
         <a href="https://github.com/ZipZap1" target="_blank"
-           style="display: inline-flex; align-items: center; gap: 0.5em;
-                  padding: 0.5em 0.9em; border-radius: 999px;
+           style="display: inline-flex; align-items: center; gap: 0.4em;
+                  padding: 0.3em 0.7em; border-radius: 999px;
                   background: #24292f; color: #ffffff; text-decoration: none;
-                  font-weight: 600; font-size: 0.9em;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                  font-weight: 600; font-size: 0.8em;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
                  aria-hidden="true" style="flex-shrink: 0;">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
             </svg>
@@ -209,16 +213,15 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
+# Above-the-Fold Value-Prop. Kompakter (1.7em statt 2.2em, kurzes Body)
+# damit der Pro-CTA-Button direkt darunter ohne Scrollen sichtbar ist.
 _hero_headline = t(
     "TikToks ohne Gesicht. Ohne Stimme. Ohne Skills.",
     "TikToks without your face. Without your voice. Without skills.",
 )
 _hero_body = t(
-    "Tipp deinen Text. KI generiert Voiceover, sucht passende Stockvideos, "
-    "synct Untertitel. Fertiges Video in unter einer Minute.",
-    "Type your text. AI generates the voiceover, finds matching stock videos, "
-    "syncs captions. Finished video in under a minute.",
+    "Tipp deinen Text. KI macht den Rest. Fertiges Video in unter einer Minute.",
+    "Type your text. AI does the rest. Finished video in under a minute.",
 )
 _hero_cta = t(
     "Kostenlos starten, ohne Account.",
@@ -226,13 +229,13 @@ _hero_cta = t(
 )
 st.markdown(
     f"""
-    <div style="margin-top: -0.5em; margin-bottom: 0.5em;">
-        <h1 style="font-size: 2.2em; font-weight: 800; line-height: 1.15;
+    <div style="margin-top: -0.2em; margin-bottom: 0.3em;">
+        <h1 style="font-size: 1.7em; font-weight: 800; line-height: 1.15;
                    margin: 0; color: #0f172a;">
             {_hero_headline}
         </h1>
-        <p style="font-size: 1.05em; line-height: 1.5; margin-top: 0.6em;
-                  color: rgba(15, 23, 42, 0.7);">
+        <p style="font-size: 0.95em; line-height: 1.4; margin: 0.3em 0 0 0;
+                  color: rgba(15, 23, 42, 0.72);">
             {_hero_body}
             <strong style="color: #8b5cf6;">{_hero_cta}</strong>
         </p>
@@ -373,7 +376,38 @@ with st.sidebar:
         ))
 
 
-# ----- Onboarding -----
+# Pro-CTA-Banner direkt unter dem Hero -> Above-The-Fold sichtbar
+# auch auf kleinen Mobile-Screens. Border-Style fuer cleane Optik.
+if not is_pro and _pro_url:
+    _pro_banner_text = t(
+        "<strong>Pro freischalten:</strong> Kein Wasserzeichen, Premium-Stimmen, Voice-Cloning.",
+        "<strong>Unlock Pro:</strong> No watermark, premium voices, voice cloning.",
+    )
+    _pro_banner_cta = t("Pro-Abo 8,99 €/Mo →", "Pro subscription €8.99/mo →")
+    st.markdown(
+        f"""
+        <div style="padding: 0.7em 0.9em; border-radius: 8px;
+                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                    margin: 0.2em 0 0.5em 0; display: flex;
+                    align-items: center; gap: 0.7em; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; font-size: 0.9em; color: #0f172a;">
+                {_pro_banner_text}
+            </div>
+            <a href="{_pro_url}" target="_blank"
+               style="padding: 0.5em 1.1em; border-radius: 999px;
+                      border: 2px solid #8b5cf6; background: transparent;
+                      color: #8b5cf6; font-weight: 700; font-size: 0.88em;
+                      text-decoration: none; white-space: nowrap;
+                      transition: all 0.15s;">
+                {_pro_banner_cta}
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ----- Onboarding (unter Pro-CTA, damit CTA above-the-fold bleibt) -----
 with st.expander(t("Wie funktioniert das?", "How does it work?"), expanded=False):
     st.markdown(t(
         """
@@ -393,37 +427,6 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
 Tab **Enhance image** is a Pro tool: image in, AI makes it sharper.
         """,
     ))
-
-
-# Pro-CTA-Banner mit direktem Link zum Polar-Abo-Checkout (8,99/Mo).
-# Border-Style fuer cleane Outline-Optik.
-if not is_pro and _pro_url:
-    _pro_banner_text = t(
-        "<strong>Pro freischalten:</strong> Kein Wasserzeichen, Premium-Stimmen, Voice-Cloning.",
-        "<strong>Unlock Pro:</strong> No watermark, premium voices, voice cloning.",
-    )
-    _pro_banner_cta = t("Pro-Abo 8,99 €/Mo →", "Pro subscription €8.99/mo →")
-    st.markdown(
-        f"""
-        <div style="padding: 0.9em 1em; border-radius: 8px;
-                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-                    margin: 0.5em 0 0.8em 0; display: flex;
-                    align-items: center; gap: 0.8em; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
-                {_pro_banner_text}
-            </div>
-            <a href="{_pro_url}" target="_blank"
-               style="padding: 0.55em 1.2em; border-radius: 999px;
-                      border: 2px solid #8b5cf6; background: transparent;
-                      color: #8b5cf6; font-weight: 700; font-size: 0.9em;
-                      text-decoration: none; white-space: nowrap;
-                      transition: all 0.15s;">
-                {_pro_banner_cta}
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
