@@ -36,13 +36,25 @@ from i18n import t, render_lang_toggle, get_lang
 
 _ASSETS = Path(__file__).parent / "assets"
 
-# Sidebar-State in session_state speichern. Wird in set_page_config()
-# als initial_sidebar_state durchgereicht. Toggle-Buttons (oben links +
-# in der Sidebar) flippen den State und triggern via on_click Rerun.
-# Streamlits Default-Chevron ist in dieser Version verbuggt, daher
-# Python-Native-Pattern statt JS-Hack.
+# Sidebar-Toggle via Double-Rerun-Pattern. Streamlits initial_sidebar_state
+# greift nur beim FIRST run; auf subsequent Reruns ignoriert Streamlit
+# Aenderungen wenn der Frontend-State schon was anderes denkt. Loesung:
+# Queue mit zwei States (aktueller, dann gewuenschter). Erster Rerun
+# resettet, zweiter setzt den finalen State - Frontend wird gezwungen
+# zu syncen. Quelle: Streamlit-Forum.
+import time as _time
+
+if "sidebar_handler" not in st.session_state:
+    st.session_state.sidebar_handler = []
 if "sidebar_state" not in st.session_state:
     st.session_state.sidebar_state = "expanded"
+
+# Pop next state from queue, falls einer ansteht
+if st.session_state.sidebar_handler:
+    _state_for_this_run = st.session_state.sidebar_handler.pop(0)
+    st.session_state.sidebar_state = _state_for_this_run
+else:
+    _state_for_this_run = st.session_state.sidebar_state
 
 # Page title used by browser tab. Set once at config time, so we read the
 # lang at module-load from query params directly (session_state isn't ready
@@ -54,17 +66,24 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state=st.session_state.sidebar_state,
+    initial_sidebar_state=_state_for_this_run,
 )
+
+# Falls Queue noch was hat: zweiter Rerun ausloesen mit kleinem Delay
+# (Backend braucht Zeit, Message-Cycle nicht zu schnell ueberfahren).
+if st.session_state.sidebar_handler:
+    _time.sleep(0.1)
+    st.rerun()
 
 
 def _toggle_sidebar():
-    """on_click-Callback. Flippt den Sidebar-State zwischen expanded
-    und collapsed. set_page_config liest das beim naechsten Rerun
-    (der on_click automatisch ausloest)."""
-    st.session_state.sidebar_state = (
-        "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
-    )
+    """Queue Force-Toggle: aktueller-State + gewuenschter-State. Erster
+    Pop ist no-op (same state) signalisiert Streamlit-Frontend einen
+    State-Change, zweiter Pop setzt den echten neuen State."""
+    if st.session_state.sidebar_state == "expanded":
+        st.session_state.sidebar_handler.extend(["expanded", "collapsed"])
+    else:
+        st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
 
 render_lang_toggle()
 
