@@ -234,18 +234,37 @@ st.markdown(
         opacity: 0 !important;
         pointer-events: none !important;
     }
-    /* Open-Button-Container mit Marker-Klasse stylen */
-    .vc-sb-open-wrap div[data-testid="stButton"] {
-        margin: 0 0 0.5em 0;
+    /* Open-Button (≡) floated fixed top-left. Streamlit wrappt
+       Widgets mit Klasse st-key-{key} -> direkt targeten. */
+    .st-key-vc_sb_open {
+        position: fixed !important;
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        z-index: 999999 !important;
+        width: auto !important;
     }
-    .vc-sb-open-wrap button {
+    .st-key-vc_sb_open button {
         background: #8b5cf6 !important;
         color: white !important;
         border: none !important;
+        border-radius: 12px !important;
         font-weight: 700 !important;
+        font-size: 22px !important;
+        line-height: 1 !important;
+        padding: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35) !important;
     }
-    .vc-sb-open-wrap button:hover {
+    .st-key-vc_sb_open button:hover {
         background: #7c3aed !important;
+    }
+    .st-key-vc_sb_open button:active {
+        transform: scale(0.94);
     }
     </style>
     """,
@@ -253,9 +272,9 @@ st.markdown(
 )
 
 
-# Open-Button nur rendern wenn Sidebar collapsed.
+# Open-Button (≡) rendern wenn Sidebar collapsed. CSS .st-key-vc_sb_open
+# floated den Button via position:fixed nach oben links.
 if st.session_state.sidebar_state == "collapsed":
-    st.markdown('<div class="vc-sb-open-wrap">', unsafe_allow_html=True)
     st.button(
         "≡",
         key="vc_sb_open",
@@ -263,7 +282,6 @@ if st.session_state.sidebar_state == "collapsed":
         type="primary",
         help=t("Sidebar öffnen", "Open sidebar"),
     )
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
