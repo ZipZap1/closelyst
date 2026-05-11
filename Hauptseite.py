@@ -124,22 +124,42 @@ st.markdown(
     </style>
 
     <script>
-    // Fallback: falls Streamlit den Header dynamisch (re-)rendert, JS nimmt
-    // ihn wieder weg. Observer laeuft 30 Sek, dann disconnected.
+    // Aggressive Strategie: alles in header sowie alle Popover/Menue-Container
+    // entfernen. Observer laeuft persistent fuer die ganze Session.
     (function() {
-      const KILL = [
+      const KILL_SELECTORS = [
         'header', '[data-testid="stHeader"]', '[data-testid="stToolbar"]',
         '[data-testid="stToolbarActions"]', '[data-testid="stMainMenu"]',
+        '[data-testid="stMainMenuPopover"]', '[data-testid="stMainMenuList"]',
         '[data-testid="stDeployButton"]', '[data-testid="stStatusWidget"]',
-        '[data-testid="stDecoration"]', '#MainMenu', 'footer'
+        '[data-testid="stDecoration"]', '#MainMenu', 'footer',
+        '[role="menu"]', '[role="menuitem"]',
+        'button[aria-label*="menu" i]', 'button[aria-label*="Menu" i]',
+        'button[aria-label*="options" i]', 'button[kind="header"]',
+        'button[kind="headerNoPadding"]'
       ];
-      const nuke = () => KILL.forEach(sel => {
-        document.querySelectorAll(sel).forEach(el => el.remove());
-      });
+      const KILL_TEXTS = ['Print', 'Made with Streamlit', 'Record screen',
+                           'Record a screencast', 'Settings', 'Theme'];
+
+      const nuke = () => {
+        KILL_SELECTORS.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => el.remove());
+        });
+        // Text-basierter Fallback: jedes Element dessen Text exakt einem
+        // bekannten Streamlit-Menu-Item entspricht, plus dessen Parent (Container).
+        document.querySelectorAll('div, span, li, button, a').forEach(el => {
+          const t = (el.textContent || '').trim();
+          if (KILL_TEXTS.some(kt => t === kt || t.startsWith(kt + ' '))) {
+            const p = el.closest('[role="menu"], [role="menuitem"], li, div');
+            if (p && p !== document.body) p.remove();
+            else el.remove();
+          }
+        });
+      };
       nuke();
       const obs = new MutationObserver(nuke);
       obs.observe(document.body, {childList: true, subtree: true});
-      setTimeout(() => obs.disconnect(), 30000);
+      // Persistent fuer die Session - kein setTimeout-Disconnect.
     })();
     </script>
     """,
