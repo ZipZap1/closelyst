@@ -451,7 +451,11 @@ Tab **Enhance image** is a Pro tool: image in, AI makes it sharper.
 # Demo prefers external URL (CDN), falls back to bundled assets/demo.mp4
 # wenn die im Repo liegt. So oder so: Demo erscheint sobald File / URL da ist.
 _demo_url = os.environ.get("DEMO_VIDEO_URL", "").strip()
-_demo_local = _ASSETS / "demo.mp4"
+# Sprachabhaengiges Demo: demo_en.mp4 wenn lang=en, sonst demo.mp4.
+# Fallback auf demo.mp4 wenn EN-File fehlt.
+_demo_local = _ASSETS / ("demo_en.mp4" if get_lang() == "en" else "demo.mp4")
+if not _demo_local.exists():
+    _demo_local = _ASSETS / "demo.mp4"
 _demo_source = _demo_url if _demo_url else (str(_demo_local) if _demo_local.exists() else "")
 _ph_url = os.environ.get("PRODUCTHUNT_URL", "").strip()
 
