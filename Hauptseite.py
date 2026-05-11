@@ -186,6 +186,18 @@ st.markdown(
             padding-right: 0.75rem !important;
         }
     }
+    /* Horizontale Radio-Buttons: gleiche Breite per CSS-Grid statt
+       Flex mit content-based widths. Ohne das werden die Spalten
+       je nach Caption-Laenge unterschiedlich breit. */
+    div[data-testid="stRadio"] > div[role="radiogroup"] {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.6rem 1rem !important;
+    }
+    div[data-testid="stRadio"] > div[role="radiogroup"] > label {
+        width: 100% !important;
+        margin: 0 !important;
+    }
     /* Header bleibt mit seiner Default-Hoehe damit Sidebar-Chevron
        in seinem natuerlichen Spot sitzt (Streamlit-JS fadet ihn sonst
        weg und ist nicht via CSS oder MutationObserver zuverlaessig
