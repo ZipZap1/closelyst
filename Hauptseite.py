@@ -185,11 +185,37 @@ st.markdown(
     section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] {
         display: none !important;
     }
-    /* Falls Streamlit-CSS die Sidebar trotzdem auf 0 width animiert
-       (z.B. bei kleinen Viewports), forcieren wir sie offen */
-    section[data-testid="stSidebar"][aria-expanded="false"] {
+    /* Sidebar hart auf volle Breite zwingen egal welchen aria-State
+       Streamlit setzt. Sonst kollabiert die Breite auf ~10px und der
+       Text squisht zu 1-Zeichen-Spalten. */
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"][aria-expanded="false"],
+    section[data-testid="stSidebar"][aria-expanded="true"] {
+        min-width: 244px !important;
+        max-width: 244px !important;
+        width: 244px !important;
         transform: translateX(0) !important;
         margin-left: 0 !important;
+        visibility: visible !important;
+    }
+    section[data-testid="stSidebar"] > div:first-child {
+        width: 244px !important;
+        min-width: 244px !important;
+    }
+    /* Mobile: Sidebar als 80% Screen-Width statt fix 244px, damit sie
+       nicht abgeschnitten wird; Inhalt scrollbar */
+    @media (max-width: 640px) {
+        section[data-testid="stSidebar"],
+        section[data-testid="stSidebar"][aria-expanded="false"],
+        section[data-testid="stSidebar"][aria-expanded="true"] {
+            min-width: 80vw !important;
+            max-width: 80vw !important;
+            width: 80vw !important;
+        }
+        section[data-testid="stSidebar"] > div:first-child {
+            width: 80vw !important;
+            min-width: 80vw !important;
+        }
     }
     </style>
     """,
