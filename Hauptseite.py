@@ -234,16 +234,30 @@ st.markdown(
         opacity: 0 !important;
         pointer-events: none !important;
     }
-    /* Open-Button (≡) floated fixed top-left. Streamlit wrappt
-       Widgets mit Klasse st-key-{key} -> direkt targeten. */
-    .st-key-vc_sb_open {
+    /* Open-Button-Container (≡). Streamlit-Ancestors haben Transforms
+       die position:fixed gegen den Parent verankern statt gegen den
+       Viewport (transform creates containing block fuer fixed). Daher:
+       transform/filter/perspective auf Ancestors hart ueberschreiben. */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"],
+    section[data-testid="stMain"],
+    .stApp,
+    .main {
+        transform: none !important;
+        filter: none !important;
+        perspective: none !important;
+    }
+
+    /* st.container(key=) traegt Klasse st-key-{key} auf das Wrapper-Div */
+    .st-key-vc_sb_open_wrap {
         position: fixed !important;
         top: 0.5rem !important;
         left: 0.5rem !important;
         z-index: 999999 !important;
         width: auto !important;
     }
-    .st-key-vc_sb_open button {
+    .st-key-vc_sb_open_wrap button {
         background: #8b5cf6 !important;
         color: white !important;
         border: none !important;
@@ -260,10 +274,10 @@ st.markdown(
         justify-content: center !important;
         box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35) !important;
     }
-    .st-key-vc_sb_open button:hover {
+    .st-key-vc_sb_open_wrap button:hover {
         background: #7c3aed !important;
     }
-    .st-key-vc_sb_open button:active {
+    .st-key-vc_sb_open_wrap button:active {
         transform: scale(0.94);
     }
     </style>
@@ -272,16 +286,18 @@ st.markdown(
 )
 
 
-# Open-Button (≡) rendern wenn Sidebar collapsed. CSS .st-key-vc_sb_open
-# floated den Button via position:fixed nach oben links.
+# Open-Button (≡) im st.container(key=...) damit das Wrapper-Div die
+# st-key-vc_sb_open_wrap Klasse bekommt. Container wird per CSS fixed
+# oben links positioniert; Button erbt visuelles Styling.
 if st.session_state.sidebar_state == "collapsed":
-    st.button(
-        "≡",
-        key="vc_sb_open",
-        on_click=_toggle_sidebar,
-        type="primary",
-        help=t("Sidebar öffnen", "Open sidebar"),
-    )
+    with st.container(key="vc_sb_open_wrap"):
+        st.button(
+            "≡",
+            key="vc_sb_open",
+            on_click=_toggle_sidebar,
+            type="primary",
+            help=t("Sidebar öffnen", "Open sidebar"),
+        )
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
