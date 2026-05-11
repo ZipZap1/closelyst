@@ -92,11 +92,11 @@ st.markdown(
 
     /* Atemraum oben vor dem Logo */
     .main .block-container {
-        padding-top: 2rem !important;
+        padding-top: 1rem !important;
     }
     @media (max-width: 640px) {
         .main .block-container {
-            padding-top: 1rem !important;
+            padding-top: 0.5rem !important;
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
         }
