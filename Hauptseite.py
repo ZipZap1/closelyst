@@ -638,16 +638,17 @@ def _demo_video_html(source):
 
 
 def _render_demo_expander():
-    # expanded=True hardcoded zwingt das Expander bei jedem Rerun auf,
-    # auch wenn der User es zugemacht hat. Loesung: expanded nur beim
-    # allerersten Visit auf True setzen, danach False (kein Force-Open).
-    # Streamlit merkt sich dann die User-Toggle-Aktion intern.
+    # Streamlits expanded= override den User-State auf JEDEM Rerun -
+    # egal ob True oder False. Loesung: kwarg nur beim First-Visit
+    # ueberhaupt uebergeben. Auf subsequent Reruns ganz weglassen,
+    # damit Streamlits intern gemerkter Toggle-State erhalten bleibt.
     _first = "_demo_seen" not in st.session_state
     if _first:
         st.session_state._demo_seen = True
+    _kw = {"expanded": True} if _first else {}
     with st.expander(
         t("Demo: VoiceClip in Aktion (20 Sek)", "Demo: VoiceClip in action (20 sec)"),
-        expanded=_first,
+        **_kw,
     ):
         html = _demo_video_html(_demo_source)
         if html:
