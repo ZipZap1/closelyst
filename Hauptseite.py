@@ -125,6 +125,21 @@ st.markdown(
         height: auto !important;
     }
 
+    /* SIDEBAR SELBST erzwingen sichtbar + offen */
+    [data-testid="stSidebar"],
+    section[data-testid="stSidebar"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        min-width: 240px !important;
+        width: auto !important;
+    }
+    [data-testid="stSidebarContent"] {
+        display: block !important;
+        visibility: visible !important;
+    }
+
     /* Top-padding: genug Atemraum vor dem Logo */
     .main .block-container,
     section[data-testid="stMain"] > div,
