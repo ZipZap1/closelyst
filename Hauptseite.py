@@ -195,11 +195,25 @@ st.markdown(
 st.markdown(
     """
     <style>
-    /* Streamlit-eigene Sidebar-Collapse-Controls aus damit sie nicht
-       mit unserem Toggle in Konflikt geraten. */
+    /* Streamlit-eigene Sidebar-Collapse-Controls aggressiv aus. Testid
+       varriiert pro Streamlit-Version, daher Multi-Selector mit
+       Substring-Match. Sonst flackern Streamlits eigene Pfeile durch
+       und kollidieren mit unserem Python-Toggle. */
     [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"] {
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid*="SidebarCollapse"],
+    [data-testid*="sidebarCollapse"],
+    section[data-testid="stSidebar"] button[kind="header"],
+    section[data-testid="stSidebar"] button[kind="headerNoPadding"],
+    section[data-testid="stSidebar"] [data-testid="baseButton-header"],
+    section[data-testid="stSidebar"] [data-testid="baseButton-headerNoPadding"],
+    header[data-testid="stHeader"] button[kind="header"],
+    button[aria-label*="sidebar" i],
+    button[aria-label*="ollapse" i] {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
     /* Open-Button-Container mit Marker-Klasse stylen */
     .vc-sb-open-wrap div[data-testid="stButton"] {
