@@ -331,10 +331,16 @@ def compose(audio_path, video_path, output_path, tmp_dir,
 
     cmd = [
         "ffmpeg", "-y",
+        # Limit Thread-Anzahl: weniger parallele Frame-Buffer = weniger Memory.
+        # 2 Threads reichen fuer Streaming-Encoding ohne Performance-Verlust.
+        "-threads", "2",
+        "-filter_threads", "2",
         *inputs,
         "-filter_complex", filtergraph,
         "-map", f"[{final_label}]", "-map", "1:a",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        # ultrafast: weniger CPU und Memory als veryfast, akzeptable Qualitaet
+        # bei 1080p.
+        "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
         "-c:a", "aac", "-b:a", "128k",
         "-t", f"{duration:.2f}",
         "-shortest",

@@ -22,10 +22,6 @@ services:
       - "8501"
     networks:
       - backend_default
-    deploy:
-      resources:
-        limits:
-          memory: 1500M
 
 networks:
   backend_default:
