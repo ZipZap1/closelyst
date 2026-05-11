@@ -74,6 +74,31 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# iOS Safari fullscreent HTML5-Videos beim ersten User-Tap, wenn das
+# playsinline-Attribut fehlt. st.video() setzt es nicht, also patchen
+# wir alle <video>-Elemente per MutationObserver. Greift fuer Demo-
+# Video und Post-Generation-Preview gleichzeitig.
+st.markdown(
+    """
+    <script>
+    (function() {
+      const patch = () => {
+        document.querySelectorAll('video').forEach(v => {
+          if (!v.hasAttribute('playsinline')) {
+            v.setAttribute('playsinline', '');
+            v.setAttribute('webkit-playsinline', '');
+          }
+        });
+      };
+      patch();
+      const obs = new MutationObserver(patch);
+      obs.observe(document.body, {childList: true, subtree: true});
+    })();
+    </script>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Minimaler Polish: Footer (Made with Streamlit) und Deploy-Button verstecken.
 # Das 3-Punkte-Menue bleibt sichtbar - Streamlit-Default, kein UI-Krieg.
 # Padding-Top fuer Atemraum oben.
@@ -278,7 +303,7 @@ with st.sidebar:
 
 
 # ----- Onboarding -----
-with st.expander("Wie funktioniert das?", expanded=True):
+with st.expander("Wie funktioniert das?", expanded=False):
     st.markdown(
         """
 1. Text eintippen
