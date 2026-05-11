@@ -102,21 +102,10 @@ st.markdown(
 # playsinline-Attribut fehlt. st.video() setzt es nicht, also patchen
 # wir alle <video>-Elemente per MutationObserver. Greift fuer Demo-
 # Video und Post-Generation-Preview gleichzeitig.
-#
-# Zusaetzlich: Streamlit fadet den Sidebar-Open/Close-Chevron via inline
-# styles aus (CSS !important wird von inline styles ueberschrieben).
-# Der gleiche MutationObserver-Tick forciert opacity:1 zurueck, damit
-# die Pfeile permanent sichtbar bleiben.
 st.markdown(
     """
     <script>
     (function() {
-      const sidebarSelectors = [
-        '[data-testid="stSidebarCollapsedControl"]',
-        '[data-testid="stSidebarCollapseButton"]',
-        '[data-testid="collapsedControl"]',
-        'button[kind="header"]'
-      ];
       const patch = () => {
         document.querySelectorAll('video').forEach(v => {
           if (!v.hasAttribute('playsinline')) {
@@ -124,21 +113,10 @@ st.markdown(
             v.setAttribute('webkit-playsinline', '');
           }
         });
-        sidebarSelectors.forEach(sel => {
-          document.querySelectorAll(sel).forEach(el => {
-            if (el.style.opacity !== '1') el.style.setProperty('opacity', '1', 'important');
-            if (el.style.visibility !== 'visible') el.style.setProperty('visibility', 'visible', 'important');
-            el.style.setProperty('transition', 'none', 'important');
-            el.style.setProperty('pointer-events', 'auto', 'important');
-          });
-        });
       };
       patch();
       const obs = new MutationObserver(patch);
-      obs.observe(document.body, {
-        childList: true, subtree: true,
-        attributes: true, attributeFilter: ['style', 'class']
-      });
+      obs.observe(document.body, {childList: true, subtree: true});
     })();
     </script>
     """,
@@ -172,31 +150,14 @@ st.markdown(
             padding-right: 0.75rem !important;
         }
     }
-    /* Streamlit Header-Bar nimmt 3.75rem oben. zero-height +
-       transparent + overflow:visible damit der Sidebar-Chevron als
-       Child sichtbar bleibt aber keinen Vertikal-Platz frisst. */
+    /* Header bleibt mit seiner Default-Hoehe damit Sidebar-Chevron
+       in seinem natuerlichen Spot sitzt (Streamlit-JS fadet ihn sonst
+       weg und ist nicht via CSS oder MutationObserver zuverlaessig
+       zu fixen). Above-The-Fold-Platz holen wir nur ueber kompakteres
+       Hero/Logo/Social-Pills/Hero-Body. Background transparent damit
+       sich der Header optisch in die Seite einfuegt. */
     header[data-testid="stHeader"] {
-        height: 0 !important;
-        min-height: 0 !important;
         background: transparent !important;
-        overflow: visible !important;
-        z-index: 999990 !important;
-    }
-    /* Streamlit fadet den Chevron via opacity/transition aus. Hart
-       forcieren dass er sichtbar bleibt. Multiple Testids weil Naming
-       sich zwischen Streamlit-Versionen aendert. */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="collapsedControl"],
-    [data-testid="baseButton-headerNoPadding"],
-    button[kind="header"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transition: none !important;
-        transform: none !important;
-        z-index: 999991 !important;
     }
     /* Toolbar rechts (3-Punkte, Deploy) versteckt; entfernt Konflikt
        mit unserem Language-Toggle, der oben rechts sitzt. */
