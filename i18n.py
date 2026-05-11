@@ -52,7 +52,7 @@ def render_lang_toggle():
 [data-testid="stMainMenu"] {{ display: none !important; }}
 
 .vc-lang {{
-    position: fixed; top: 0.6rem; right: 0.8rem;
+    position: fixed; bottom: 0.8rem; left: 50%; transform: translateX(-50%);
     /* Max-Int z-index, sicher ueber jedem Streamlit-Layer */
     z-index: 2147483647;
     display: flex; gap: 2px;
@@ -88,8 +88,8 @@ def render_lang_toggle():
     .vc-lang a:hover {{ color: white; }}
 }}
 @media (max-width: 640px) {{
-    /* Auf Mobile etwas tiefer, damit kein Konflikt mit Streamlit-Header */
-    .vc-lang {{ top: 0.5rem; right: 0.5rem; }}
+    /* Mobile: bisschen mehr Abstand vom unteren Rand (Safari-Tab-Bar etc.) */
+    .vc-lang {{ bottom: 1rem; }}
     .vc-lang a {{ min-width: 48px; min-height: 36px; padding: 7px 16px; font-size: 14px; }}
 }}
 </style>
