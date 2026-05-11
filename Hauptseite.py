@@ -34,9 +34,43 @@ import rate_limit
 
 _ASSETS = Path(__file__).parent / "assets"
 st.set_page_config(
-    page_title="VoiceClip",
+    page_title="VoiceClip - TikToks ohne Gesicht in 60 Sekunden | closelyst.com",
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
+)
+
+# SEO-Metadata via JavaScript in <head> injizieren. Streamlit's
+# set_page_config setzt nur title/icon, fuer og:image und Description
+# brauchen wir Custom-Tags.
+st.markdown(
+    """
+    <script>
+    (function() {
+      const head = document.head;
+      const meta = (k, v, attr) => {
+        attr = attr || 'name';
+        let existing = head.querySelector(`meta[${attr}="${k}"]`);
+        if (existing) { existing.setAttribute('content', v); return; }
+        const m = document.createElement('meta');
+        m.setAttribute(attr, k);
+        m.setAttribute('content', v);
+        head.appendChild(m);
+      };
+      const desc = "KI-Tool für faceless TikToks. Text rein, KI-Voiceover plus passendes Stockvideo plus Untertitel raus. Fertiges 9:16-Video in unter einer Minute. Kostenlos.";
+      meta('description', desc);
+      meta('og:title', 'VoiceClip - TikToks ohne Gesicht in 60 Sekunden', 'property');
+      meta('og:description', desc, 'property');
+      meta('og:type', 'website', 'property');
+      meta('og:url', 'https://closelyst.com/', 'property');
+      meta('og:image', 'https://closelyst.com/~/+/media/icon.png', 'property');
+      meta('og:locale', 'de_DE', 'property');
+      meta('twitter:card', 'summary');
+      meta('twitter:title', 'VoiceClip - TikToks ohne Gesicht');
+      meta('twitter:description', desc);
+    })();
+    </script>
+    """,
+    unsafe_allow_html=True,
 )
 
 # Hide Streamlit-Branding: kompletten Header-Block plus alle bekannten
@@ -73,8 +107,19 @@ st.markdown(
 
     /* Top-padding reduzieren weil Header weg ist */
     .main .block-container,
-    section[data-testid="stMain"] > div {
-        padding-top: 1.5rem !important;
+    section[data-testid="stMain"] > div,
+    .stApp [data-testid="stAppViewContainer"] > section > div {
+        padding-top: 0.75rem !important;
+    }
+
+    /* Mobile: noch tighter, kein wasted vertical space */
+    @media (max-width: 640px) {
+        .main .block-container,
+        section[data-testid="stMain"] > div {
+            padding-top: 0.5rem !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
     }
     </style>
 
@@ -530,9 +575,20 @@ with tab_video:
             return rate_limit.get_free_quota()
         _used, _rem, _lim = _cached_free_quota()
         if _rem == 0:
-            st.caption(f"Tageslimit erreicht ({_used}/{_lim} kostenlose Videos heute). Komm morgen wieder oder kauf einen Pro-Schlüssel.")
-        elif _rem <= _lim:
-            st.caption(f"Free-Tier: {_used}/{_lim} kostenlose Videos heute verbraucht. {_rem} übrig.")
+            st.error(
+                f"**Tageslimit erreicht.** Du hast {_used} von {_lim} kostenlosen Videos heute "
+                f"verbraucht. Komm morgen wieder oder kauf einen Pro-Schlüssel (ab 2,99 EUR) "
+                f"für unbegrenzte Generierungen."
+            )
+        elif _rem <= 2:
+            st.warning(
+                f"Nur noch **{_rem} von {_lim}** kostenlosen Videos heute übrig. "
+                f"Für unbegrenzt: Pro ab 2,99 EUR (siehe Sidebar)."
+            )
+        elif _rem < _lim:
+            st.info(
+                f"Free-Tier: {_used} von {_lim} kostenlosen Videos heute verbraucht. **{_rem} übrig.**"
+            )
 
     # ----- Generate (video flow) -----
     if generate_btn:
