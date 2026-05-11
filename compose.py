@@ -126,6 +126,40 @@ def _render_text_png(text, out_path, font_size=46, padding=18, max_width=940,
     return out_path
 
 
+def _text_to_even_phrases(text, duration, max_words=3):
+    """Split text into evenly-timed phrases when no character alignment exists.
+
+    Used by Free-Tier (OpenAI TTS) which doesn't return word-level timestamps.
+    Splits text into ~3-word chunks and distributes them evenly across duration.
+    Result feels synced even if it's approximate, not real word-timing.
+
+    Returns list of {text, start, end}.
+    """
+    words = (text or "").split()
+    if not words or duration <= 0:
+        return []
+    chunks = []
+    current = []
+    for word in words:
+        current.append(word)
+        if len(current) >= max_words:
+            chunks.append(" ".join(current))
+            current = []
+    if current:
+        chunks.append(" ".join(current))
+    if not chunks:
+        return []
+    seconds_per_chunk = duration / len(chunks)
+    phrases = []
+    for i, chunk in enumerate(chunks):
+        phrases.append({
+            "text": chunk,
+            "start": i * seconds_per_chunk,
+            "end": (i + 1) * seconds_per_chunk,
+        })
+    return phrases
+
+
 def _alignment_to_phrases(alignment, target_seconds=1.6, max_words=3):
     """Group ElevenLabs character-level alignment into displayable phrases.
 
@@ -239,6 +273,10 @@ def compose(audio_path, video_path, output_path, tmp_dir,
         style.update({k: v for k, v in caption_style.items() if v is not None})
 
     phrases = _alignment_to_phrases(alignment) if alignment else []
+    if not phrases:
+        # Free-Tier (kein alignment): Text in ~3-Wort-Chunks gleichmaessig
+        # ueber die Dauer verteilen. Sieht synced aus auch ohne Whisper.
+        phrases = _text_to_even_phrases(fallback_text, duration)
     if not phrases:
         phrases = [{
             "text": _safe_text(fallback_text) or "...",
