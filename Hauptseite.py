@@ -228,7 +228,6 @@ with tab_video:
         voice_backend = "elevenlabs" if backend_label.startswith("ElevenLabs") else "openai_tts1hd"
     else:
         voice_backend = "openai_tts1hd"
-        st.caption("Free-Modus: 3 kuratierte OpenAI-Voices. Bezahltes Paket (ab 2,99 EUR) schaltet ElevenLabs Premium-Voices, word-synced Captions und Voice-Cloning frei.")
 
     # Voice cloning is a Pro-only power feature, AND only meaningful when the
     # ElevenLabs backend is selected (clones live in the ElevenLabs account).
