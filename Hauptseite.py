@@ -292,8 +292,8 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
 
-# Pro-CTA-Banner mit Sidebar-Trigger-Button. Klick oeffnet die Sidebar
-# via JS, dort steht das eigentliche Pro-Box.
+# Pro-CTA-Banner mit Sidebar-Open-Button. JS sucht mehrere Selector-
+# Varianten plus simuliert Touch/Click-Events damit's auf Mobile + Desktop laeuft.
 if not is_pro and (_remove_url or _pro_url):
     st.markdown(
         """
@@ -304,19 +304,39 @@ if not is_pro and (_remove_url or _pro_url):
             <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
                 <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
             </div>
-            <button onclick="
-                var btn = document.querySelector('[data-testid=&quot;stSidebarCollapseButton&quot;]')
-                    || document.querySelector('[data-testid=&quot;collapsedControl&quot;]')
-                    || document.querySelector('[aria-label=&quot;Open sidebar&quot;]')
-                    || document.querySelector('button[kind=&quot;header&quot;]');
-                if (btn) btn.click();
-                document.querySelector('[data-testid=&quot;stSidebar&quot;]')?.scrollIntoView({behavior: 'smooth'});
-            " style="padding: 0.55em 1em; border-radius: 999px; border: none;
-                     background: #8b5cf6; color: white; font-weight: 600;
-                     font-size: 0.9em; cursor: pointer; white-space: nowrap;">
+            <button id="open-sidebar-btn"
+                style="padding: 0.55em 1em; border-radius: 999px; border: none;
+                       background: #8b5cf6; color: white; font-weight: 600;
+                       font-size: 0.9em; cursor: pointer; white-space: nowrap;">
                 Pro-Optionen anzeigen →
             </button>
         </div>
+        <script>
+        (function() {
+          const btn = document.getElementById('open-sidebar-btn');
+          if (!btn || btn.dataset.bound) return;
+          btn.dataset.bound = '1';
+          btn.addEventListener('click', function() {
+            // Suche jeden moeglichen Sidebar-Trigger
+            const triggers = [
+              'button[data-testid="stSidebarCollapseButton"]',
+              'button[data-testid="collapsedControl"]',
+              'div[data-testid="collapsedControl"] button',
+              'button[aria-label*="sidebar" i]',
+              'button[aria-label*="Show navigation" i]',
+              '[data-testid="stSidebar"] button[kind="headerNoPadding"]',
+              'section[data-testid="stSidebar"] ~ * button[kind="header"]'
+            ];
+            for (const sel of triggers) {
+              const t = document.querySelector(sel);
+              if (t) { t.click(); break; }
+            }
+            // Scroll auch wenn die Sidebar schon offen ist
+            const sb = document.querySelector('[data-testid="stSidebar"]');
+            if (sb) sb.scrollIntoView({behavior: 'smooth', block: 'start'});
+          });
+        })();
+        </script>
         """,
         unsafe_allow_html=True,
     )
