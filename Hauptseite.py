@@ -80,20 +80,17 @@ st.markdown(
 st.markdown(
     """
     <style>
-    /* Header komplett raus - inkl. aller Kinder (Hamburger, Deploy, Status) */
-    .stApp > header,
-    header,
-    div[class*="stAppHeader"],
-    [data-testid="stHeader"],
+    /* Nur die spezifischen Streamlit-Branding-Elemente verstecken, NICHT
+       den ganzen Header (sonst auch Sidebar-Toggle weg). */
     [data-testid="stToolbar"],
     [data-testid="stToolbarActions"],
     [data-testid="stMainMenu"],
+    [data-testid="stMainMenuPopover"],
+    [data-testid="stMainMenuList"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
     [data-testid="stDeployButton"],
     #MainMenu,
-    button[kind="header"],
-    button[title="Open menu"],
     /* Footer */
     footer,
     [data-testid="stFooter"],
@@ -103,6 +100,12 @@ st.markdown(
         height: 0 !important;
         opacity: 0 !important;
         pointer-events: none !important;
+    }
+
+    /* Header-Bar selbst beibehalten (wegen Sidebar-Toggle), nur transparent */
+    [data-testid="stHeader"] {
+        background: transparent !important;
+        height: auto !important;
     }
 
     /* Top-padding reduzieren weil Header weg ist */
@@ -124,34 +127,31 @@ st.markdown(
     </style>
 
     <script>
-    // Aggressive Strategie: alles in header sowie alle Popover/Menue-Container
-    // entfernen. Observer laeuft persistent fuer die ganze Session.
+    // Spezifische Streamlit-Branding-Items entfernen, OHNE den Sidebar-Toggle
+    // zu killen. Nur 3-Punkte-Menue + dessen Popups, nicht den ganzen Header.
     (function() {
       const KILL_SELECTORS = [
-        'header', '[data-testid="stHeader"]', '[data-testid="stToolbar"]',
-        '[data-testid="stToolbarActions"]', '[data-testid="stMainMenu"]',
-        '[data-testid="stMainMenuPopover"]', '[data-testid="stMainMenuList"]',
-        '[data-testid="stDeployButton"]', '[data-testid="stStatusWidget"]',
-        '[data-testid="stDecoration"]', '#MainMenu', 'footer',
-        '[role="menu"]', '[role="menuitem"]',
-        'button[aria-label*="menu" i]', 'button[aria-label*="Menu" i]',
-        'button[aria-label*="options" i]', 'button[kind="header"]',
-        'button[kind="headerNoPadding"]'
+        '[data-testid="stToolbar"]', '[data-testid="stToolbarActions"]',
+        '[data-testid="stMainMenu"]', '[data-testid="stMainMenuPopover"]',
+        '[data-testid="stMainMenuList"]', '[data-testid="stDeployButton"]',
+        '[data-testid="stStatusWidget"]', '[data-testid="stDecoration"]',
+        '#MainMenu', 'footer',
+        'button[aria-label="More options"]',
+        'button[aria-label="Open the main menu"]',
+        'button[data-testid="stMainMenu"]'
       ];
       const KILL_TEXTS = ['Print', 'Made with Streamlit', 'Record screen',
-                           'Record a screencast', 'Settings', 'Theme'];
+                           'Record a screencast'];
 
       const nuke = () => {
         KILL_SELECTORS.forEach(sel => {
           document.querySelectorAll(sel).forEach(el => el.remove());
         });
-        // Text-basierter Fallback: jedes Element dessen Text exakt einem
-        // bekannten Streamlit-Menu-Item entspricht, plus dessen Parent (Container).
         document.querySelectorAll('div, span, li, button, a').forEach(el => {
           const t = (el.textContent || '').trim();
           if (KILL_TEXTS.some(kt => t === kt || t.startsWith(kt + ' '))) {
-            const p = el.closest('[role="menu"], [role="menuitem"], li, div');
-            if (p && p !== document.body) p.remove();
+            const p = el.closest('[role="menu"], [role="menuitem"], li');
+            if (p) p.remove();
             else el.remove();
           }
         });
@@ -159,7 +159,6 @@ st.markdown(
       nuke();
       const obs = new MutationObserver(nuke);
       obs.observe(document.body, {childList: true, subtree: true});
-      // Persistent fuer die Session - kein setTimeout-Disconnect.
     })();
     </script>
     """,
@@ -180,49 +179,25 @@ if _qs.get("status") == "success":
     if _checkout_id:
         st.caption(f"Checkout-Referenz: {_checkout_id[:8]}...")
 
-# Theme-Toggle: User koennen zwischen hell und dunkel switchen.
-# State lebt in session_state, CSS-Injection veraendert Background/Text.
-if "theme" not in st.session_state:
-    st.session_state.theme = "light"
-
-_theme_col1, _theme_col2 = st.columns([10, 1])
-with _theme_col2:
-    _icon = "🌙" if st.session_state.theme == "light" else "☀️"
-    if st.button(_icon, key="theme_toggle", help="Hell-/Dunkel-Modus umschalten"):
-        st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
-        st.rerun()
-
-# Dark-Mode CSS-Overrides
-if st.session_state.theme == "dark":
-    st.markdown(
-        """
-        <style>
-        .stApp, body { background-color: #0f172a !important; color: #f8fafc !important; }
-        [data-testid="stSidebar"] { background-color: #1e293b !important; }
-        [data-testid="stSidebar"] *, .main p, .main div, .main span,
-        .main label, .main h1, .main h2, .main h3, .main h4 {
-            color: #f8fafc !important;
-        }
-        h1 { color: #f8fafc !important; }
-        /* Dropdowns/Inputs */
-        .stTextArea textarea, .stTextInput input, .stSelectbox [data-baseweb="select"] > div {
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-        }
-        /* Expander */
-        .streamlit-expanderHeader, [data-testid="stExpander"] details {
-            background-color: #1e293b !important;
-        }
-        /* Captions weniger transparent in dark */
-        .stCaption, [data-testid="stCaptionContainer"] {
-            color: #94a3b8 !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
 st.image(str(_ASSETS / "logo.svg"), width=260)
+
+# TikTok-CTA direkt im Main-Content (sichtbar auch auf Mobile ohne
+# Sidebar zu oeffnen). Founder-Personality-Block fuer Cross-Channel-Traffic.
+st.markdown(
+    """
+    <div style="padding: 0.6em 0.9em; border-radius: 8px;
+                background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                margin-bottom: 0.6em; font-size: 0.95em;">
+        Solo-Founder, baut KI-Tools.
+        <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
+           style="font-weight: 600; color: #8b5cf6; text-decoration: none;
+                  margin-left: 0.3em;">
+            Folge auf TikTok @haciibrahimdogan →
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
 st.markdown(
@@ -265,26 +240,6 @@ def cached_validate(key):
 
 # ----- Sidebar: license / pro -----
 with st.sidebar:
-    # Founder-Personality plus TikTok-CTA. Solo-Founder-Story baut Trust
-    # und treibt Cross-Channel-Traffic zum TikTok-Account.
-    st.markdown(
-        """
-        <div style="padding: 0.75em 0.5em; border-radius: 8px;
-                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-                    margin-bottom: 1em;">
-            <div style="font-size: 0.9em; color: #0f172a; line-height: 1.4;">
-                Solo-Founder, baut KI-Tools.
-            </div>
-            <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
-               style="display: inline-block; margin-top: 0.4em; font-weight: 600;
-                      color: #8b5cf6; text-decoration: none; font-size: 0.95em;">
-                Folge auf TikTok @haciibrahimdogan →
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     st.subheader("Pro / Wasserzeichen entfernen")
     license_key_input = st.text_input(
         "Lizenz-Schlüssel",
