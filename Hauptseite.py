@@ -292,36 +292,42 @@ Tab **Bild verbessern** ist ein Pro-Tool: Bild rein, AI macht's schärfer.
         """
     )
 
-# Globale Sidebar-Open-Funktion. Definiert einmal, aufrufbar von jedem
-# Button via onclick. Loest das Streamlit-Re-Render-Problem (addEventListener
-# wird nicht re-bound nach State-Change).
+# Event-Delegation fuer Sidebar-Open: inline onclick funktioniert nicht
+# weil Streamlit HTML als React rendered und onclick als React-Prop
+# interpretiert. Stattdessen ein globaler Click-Listener auf document der
+# data-action="open-sidebar" Elemente erkennt.
 st.markdown(
     """
     <script>
-    window.openCloselystSidebar = function() {
-      const icons = document.querySelectorAll('[data-testid="stIconMaterial"]');
-      let toggled = false;
-      for (const ic of icons) {
-        const t = (ic.textContent || '').trim();
-        if (t === 'keyboard_double_arrow_right' || t === 'keyboard_double_arrow_left') {
-          const parentBtn = ic.closest('button');
-          if (parentBtn) { parentBtn.click(); toggled = true; break; }
+    if (!window._closelystSidebarHandler) {
+      window._closelystSidebarHandler = true;
+      document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('[data-action="open-sidebar"]');
+        if (!trigger) return;
+        e.preventDefault();
+        const icons = document.querySelectorAll('[data-testid="stIconMaterial"]');
+        let toggled = false;
+        for (const ic of icons) {
+          const t = (ic.textContent || '').trim();
+          if (t === 'keyboard_double_arrow_right' || t === 'keyboard_double_arrow_left') {
+            const parentBtn = ic.closest('button');
+            if (parentBtn) { parentBtn.click(); toggled = true; break; }
+          }
         }
-      }
-      if (!toggled) {
-        const fallbacks = [
-          'button[data-testid="stSidebarCollapseButton"]',
-          'button[data-testid="collapsedControl"]',
-          'div[data-testid="collapsedControl"] button'
-        ];
-        for (const sel of fallbacks) {
-          const t = document.querySelector(sel);
-          if (t) { t.click(); break; }
+        if (!toggled) {
+          const fallbacks = [
+            'button[data-testid="stSidebarCollapseButton"]',
+            'button[data-testid="collapsedControl"]'
+          ];
+          for (const sel of fallbacks) {
+            const t = document.querySelector(sel);
+            if (t) { t.click(); break; }
+          }
         }
-      }
-      const sb = document.querySelector('[data-testid="stSidebar"]');
-      if (sb) sb.scrollIntoView({behavior: 'smooth', block: 'start'});
-    };
+        const sb = document.querySelector('[data-testid="stSidebar"]');
+        if (sb) sb.scrollIntoView({behavior: 'smooth', block: 'start'});
+      });
+    }
     </script>
     """,
     unsafe_allow_html=True,
@@ -338,7 +344,7 @@ if not is_pro and (_remove_url or _pro_url):
             <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
                 <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
             </div>
-            <button onclick="window.openCloselystSidebar()"
+            <button data-action="open-sidebar"
                 style="padding: 0.55em 1em; border-radius: 999px; border: none;
                        background: #8b5cf6; color: white; font-weight: 600;
                        font-size: 0.9em; cursor: pointer; white-space: nowrap;">
@@ -767,7 +773,7 @@ with tab_video:
                     st.info("Wasserzeichen ist im Video. Pro-Optionen ab 2,99 EUR.")
                     st.markdown(
                         """
-                        <button onclick="window.openCloselystSidebar()"
+                        <button data-action="open-sidebar"
                             style="padding: 0.6em 1.2em; border-radius: 999px; border: none;
                                    background: #8b5cf6; color: white; font-weight: 600;
                                    font-size: 0.95em; cursor: pointer; margin-top: 0.3em;">
