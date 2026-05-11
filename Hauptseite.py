@@ -329,7 +329,7 @@ with tab_video:
             help="Wird auf 9:16 gecroppt. Tipp: unter 10 MB = schneller Upload. Video lokal mit ffmpeg komprimieren falls zu gross.",
         )
         if uploaded_media is not None:
-            _mb = len(uploaded_media.getvalue()) / 1_000_000
+            _mb = uploaded_media.size / 1_000_000
             if _mb > 15:
                 st.caption(f"Datei: {_mb:.1f} MB. Tipp: unter 10 MB = deutlich schnellerer Upload.")
         if uploaded_media is not None and uploaded_media.name.lower().endswith(
@@ -354,7 +354,7 @@ with tab_video:
             help="Tipp: unter 10 MB = schneller Upload. Video lokal komprimieren falls zu gross.",
         )
         if uploaded_media is not None:
-            _mb = len(uploaded_media.getvalue()) / 1_000_000
+            _mb = uploaded_media.size / 1_000_000
             if _mb > 15:
                 st.caption(f"Datei: {_mb:.1f} MB. Tipp: unter 10 MB = deutlich schnellerer Upload.")
         st.caption("AI synchronisiert die Lippen deiner Person mit dem AI-Voiceover. Dauert 30-90 Sekunden. Lip-Sync ist rechenintensiv und zählt 7x ins Pro-Limit (~28 Lip-Syncs pro Zyklus möglich).")
