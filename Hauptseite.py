@@ -92,7 +92,8 @@ def _toggle_sidebar():
     else:
         st.session_state.sidebar_handler.extend(["collapsed", "expanded"])
 
-render_lang_toggle()
+# render_lang_toggle() wird am Ende der Seite gerendert (siehe Footer)
+# damit er fest im Dokumentfluss am Bottom sitzt statt floating fixed.
 
 # SEO-Metadata via JavaScript in <head> injizieren. Streamlit's
 # set_page_config setzt nur title/icon, fuer og:image und Description
@@ -1432,3 +1433,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# Sprach-Toggle fest am Seitenende, im Dokumentfluss
+render_lang_toggle()

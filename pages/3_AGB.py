@@ -9,7 +9,6 @@ from i18n import render_lang_toggle, render_en_only_disclaimer_for_legal
 
 st.set_page_config(page_title="AGB - VoiceClip", page_icon="assets/icon.png")
 
-render_lang_toggle()
 render_en_only_disclaimer_for_legal()
 
 st.title("Allgemeine Geschäftsbedingungen")
@@ -315,3 +314,6 @@ Telefon: +49 1551 0899025
     """,
     unsafe_allow_html=True,
 )
+
+# Sprach-Toggle fest am Seitenende, im Dokumentfluss
+render_lang_toggle()

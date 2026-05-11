@@ -51,16 +51,17 @@ def render_lang_toggle():
    sonst die Taps auf Mobile ab. Aus und Toggle ownt den Platz. */
 [data-testid="stMainMenu"] {{ display: none !important; }}
 
+/* Im Dokumentfluss am Seitenende, kein position:fixed. */
+.vc-lang-wrap {{
+    display: flex; justify-content: center;
+    margin: 1.5rem 0 0.5rem 0;
+}}
 .vc-lang {{
-    position: fixed; bottom: 0.8rem; left: 50%; transform: translateX(-50%);
-    /* Max-Int z-index, sicher ueber jedem Streamlit-Layer */
-    z-index: 2147483647;
-    display: flex; gap: 2px;
+    display: inline-flex; gap: 2px;
     background: rgba(255,255,255,0.96);
     padding: 4px; border-radius: 999px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.18);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    /* Verhindert, dass iOS Long-Press-Selektion den Tap killt */
     -webkit-user-select: none; user-select: none;
     -webkit-tap-highlight-color: rgba(139, 92, 246, 0.25);
 }}
@@ -88,14 +89,14 @@ def render_lang_toggle():
     .vc-lang a:hover {{ color: white; }}
 }}
 @media (max-width: 640px) {{
-    /* Mobile: bisschen mehr Abstand vom unteren Rand (Safari-Tab-Bar etc.) */
-    .vc-lang {{ bottom: 1rem; }}
     .vc-lang a {{ min-width: 48px; min-height: 36px; padding: 7px 16px; font-size: 14px; }}
 }}
 </style>
-<div class="vc-lang">
+<div class="vc-lang-wrap">
+  <div class="vc-lang">
     <a href="?lang=de" class="{de_active}" target="_self" rel="nofollow">DE</a>
     <a href="?lang=en" class="{en_active}" target="_self" rel="nofollow">EN</a>
+  </div>
 </div>
 """,
         unsafe_allow_html=True,
