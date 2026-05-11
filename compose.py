@@ -308,8 +308,10 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     watermark_png = None
     if with_watermark:
         watermark_png = tmp_dir / "watermark.png"
+        # Persistenter Pro-Conversion-Hebel. Etwas groesser und voll
+        # deckend, damit Free-User es klar sehen und Druck spueren.
         _render_text_png("Made with VoiceClip", watermark_png,
-                         font_size=38, padding=16, max_width=900, bg_alpha=200)
+                         font_size=48, padding=20, max_width=900, bg_alpha=230)
 
     # Build inputs: video/image, audio, captions, optional watermark
     if is_image_bg:
@@ -360,10 +362,12 @@ def compose(audio_path, video_path, output_path, tmp_dir,
 
     if watermark_png:
         wm_idx = 2 + len(phrase_pngs)
-        wm_start = max(0.0, duration - 1.5)
+        # Watermark laeuft die ganze Video-Dauer (kein enable-Filter),
+        # horizontal zentriert, oben (120px vom Rand). Captions sitzen
+        # standardmaessig unten, daher kein Overlap. Persistente Sichtbarkeit
+        # macht den Free-vs-Pro-Unterschied klar fuer jeden Viewer.
         parts.append(
-            f"[{current_label}][{wm_idx}:v]overlay=(W-w)/2:(H-h)/2"
-            f":enable='gte(t,{wm_start:.2f})'"
+            f"[{current_label}][{wm_idx}:v]overlay=(W-w)/2:120"
             "[vfinal]"
         )
         final_label = "vfinal"
