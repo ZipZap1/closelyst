@@ -76,92 +76,32 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Hide Streamlit-Branding: kompletten Header-Block plus alle bekannten
-# Toolbar/Menu-Varianten via CSS+JS nuken. CSS-Selectors aendern sich
-# zwischen Streamlit-Versionen, deswegen breit gefasst plus JavaScript-
-# Fallback der die Elemente per MutationObserver wegnimmt.
+# Minimaler Polish: Footer (Made with Streamlit) und Deploy-Button verstecken.
+# Das 3-Punkte-Menue bleibt sichtbar - Streamlit-Default, kein UI-Krieg.
+# Padding-Top fuer Atemraum oben.
 st.markdown(
     """
     <style>
-    /* Nur die spezifischen Streamlit-Branding-Elemente verstecken, NICHT
-       den ganzen Header (sonst auch Sidebar-Toggle weg). */
-    [data-testid="stToolbar"],
-    [data-testid="stToolbarActions"],
-    [data-testid="stMainMenu"],
-    [data-testid="stMainMenuPopover"],
-    [data-testid="stMainMenuList"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"],
-    [data-testid="stDeployButton"],
-    #MainMenu,
-    /* Footer */
+    /* "Made with Streamlit" Footer und Deploy-Button raus */
     footer,
     [data-testid="stFooter"],
-    a[href*="streamlit.io"] {
+    a[href*="streamlit.io"],
+    [data-testid="stDeployButton"] {
         display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
     }
 
-    /* Header-Bar selbst beibehalten (wegen Sidebar-Toggle), nur transparent */
-    [data-testid="stHeader"] {
-        background: transparent !important;
-        height: auto !important;
+    /* Atemraum oben vor dem Logo */
+    .main .block-container {
+        padding-top: 2rem !important;
     }
-
-    /* Sidebar-Toggle EXPLIZIT erzwingen sichtbar (Mobile braucht den) */
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapseButton"],
-    button[kind="headerNoPadding"],
-    [aria-label*="sidebar" i],
-    [aria-label*="Sidebar" i] {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        height: auto !important;
-    }
-
-
-    /* Top-padding: genug Atemraum vor dem Logo */
-    .main .block-container,
-    section[data-testid="stMain"] > div,
-    .stApp [data-testid="stAppViewContainer"] > section > div {
-        padding-top: 2.5rem !important;
-    }
-
-    /* Mobile: etwas weniger aber genug Luft */
     @media (max-width: 640px) {
-        .main .block-container,
-        section[data-testid="stMain"] > div {
-            padding-top: 1.5rem !important;
+        .main .block-container {
+            padding-top: 1rem !important;
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
         }
     }
     </style>
-
-    <script>
-    // Minimal-Strategie: nur Print- und Made-with-Streamlit-Menu-Items
-    // entfernen wenn sie als Menu-Items auftauchen. KEIN Container-Removal,
-    // KEINE aggressive Cleanup, damit Sidebar nicht versehentlich kaputt geht.
-    (function() {
-      const nuke = () => {
-        document.querySelectorAll('[role="menuitem"], li[role="menuitem"]').forEach(el => {
-          const t = (el.textContent || '').trim();
-          if (t === 'Print' || t.startsWith('Made with Streamlit')
-              || t === 'Record screen' || t === 'Record a screencast') {
-            el.remove();
-          }
-        });
-      };
-      nuke();
-      new MutationObserver(nuke).observe(document.body, {childList: true, subtree: true});
-    })();
-    </script>
     """,
     unsafe_allow_html=True,
 )
