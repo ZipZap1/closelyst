@@ -293,7 +293,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption("Beide Pakete schalten alle Pro-Features frei: ElevenLabs Premium-Voices, word-synced Captions, Voice-Cloning, kein Wasserzeichen.")
+    st.caption("Beide Pakete entfernen das Wasserzeichen. Pro-Abo schaltet zusätzlich ElevenLabs Premium-Stimmen und Voice-Cloning frei.")
     if _remove_url:
         st.link_button("2,99 EUR: Einmalig (1 Video)", _remove_url)
     if _pro_url:
@@ -326,7 +326,7 @@ if not is_pro and _pro_url:
                     margin: 0.5em 0 0.8em 0; display: flex;
                     align-items: center; gap: 0.8em; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 200px; font-size: 0.95em; color: #0f172a;">
-                <strong>Pro freischalten:</strong> Premium-Voices, synced Captions, Voice-Cloning, kein Wasserzeichen.
+                <strong>Pro freischalten:</strong> Kein Wasserzeichen, Premium-Stimmen, Voice-Cloning.
             </div>
             <a href="{_pro_url}" target="_blank"
                style="padding: 0.55em 1.2em; border-radius: 999px;
@@ -402,16 +402,16 @@ with tab_video:
     )
 
     # Voice-Backend-Wahl: Free-User bekommen kuratierte OpenAI-Voices,
-    # Pro-User koennen zwischen ElevenLabs (Premium, synced Captions, Voice-Cloning)
+    # Pro-User koennen zwischen ElevenLabs (Premium-Stimmen, Voice-Cloning)
     # und OpenAI (konsistenter, oft besser fuer EN) switchen.
     if is_pro:
         backend_label = st.radio(
             "Voice-Backend",
-            options=["ElevenLabs (Premium, synced Captions, Voice-Cloning)", "OpenAI (Standard, schneller)"],
+            options=["ElevenLabs (Premium-Stimmen, Voice-Cloning)", "OpenAI (Standard, schneller)"],
             index=0,
             horizontal=True,
             key="voice_backend_radio",
-            help="ElevenLabs ist expressiver, hat synced Untertitel und Voice-Cloning. OpenAI ist konsistenter und für englischen Content oft genauso gut.",
+            help="ElevenLabs ist expressiver und unterstützt Voice-Cloning. OpenAI ist konsistenter und für englischen Content oft genauso gut.",
         )
         voice_backend = "elevenlabs" if backend_label.startswith("ElevenLabs") else "openai_tts1hd"
     else:
@@ -673,7 +673,7 @@ with tab_video:
                     st.warning("Schlüssel bereits verbraucht. Dieses Video bekommt Wasserzeichen.")
 
                 if voice_backend == "elevenlabs":
-                    progress.progress(10, text="Voiceover generieren mit ElevenLabs (mit synced Captions)...")
+                    progress.progress(10, text="Voiceover generieren mit ElevenLabs...")
                     audio_bytes, alignment = voice.generate_voiceover_with_timestamps(
                         text.strip(), selected_voice_id
                     )
@@ -719,7 +719,7 @@ with tab_video:
                         st.stop()
                     stock.download(video_url, video_path)
 
-                progress.progress(70, text="Video komponieren mit FFmpeg (synced captions)...")
+                progress.progress(70, text="Video wird komponiert...")
                 output_path = tmp_path / "out.mp4"
                 compose.compose(
                     audio_path=audio_path,
@@ -736,7 +736,7 @@ with tab_video:
                         "font_size": caption_font_size,
                         "position": caption_position,
                     },
-                    animate_image=(footage_mode != FOOTAGE_AI_IMAGE),
+                    animate_image=True,
                 )
 
                 progress.progress(100, text="Fertig.")
