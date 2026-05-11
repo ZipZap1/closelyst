@@ -203,18 +203,71 @@ st.markdown(
         var btn = document.getElementById('vc-sb-toggle');
         if (!btn || btn.dataset.bound) return;
         btn.dataset.bound = '1';
-        btn.addEventListener('click', function() {
+
+        function fireRealClick(el) {
+            // Streamlit-React reagiert oft nicht auf simples .click(),
+            // braucht volle Event-Sequenz mit Koordinaten.
+            var rect = el.getBoundingClientRect();
+            var opts = {
+                bubbles: true, cancelable: true, view: window,
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2,
+                button: 0
+            };
+            ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(function(type) {
+                try { el.dispatchEvent(new MouseEvent(type, opts)); } catch (e) {}
+            });
+            // Plus expliziter Element-Methode-Call falls Event-Dispatch
+            // nicht reicht.
+            try { el.click(); } catch (e) {}
+        }
+
+        function findToggleTarget() {
             var selectors = [
                 '[data-testid="stSidebarCollapsedControl"] button',
-                '[data-testid="stSidebarCollapseButton"]',
                 '[data-testid="stSidebarCollapsedControl"]',
+                '[data-testid="stSidebarCollapseButton"]',
+                'section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"]',
+                'section[data-testid="stSidebar"] button[kind="header"]',
                 'button[kind="header"]',
-                'header[data-testid="stHeader"] button',
-                'section[data-testid="stSidebar"] button[kind="header"]'
+                'header[data-testid="stHeader"] button'
             ];
             for (var i = 0; i < selectors.length; i++) {
                 var el = document.querySelector(selectors[i]);
-                if (el) { el.click(); return; }
+                if (el) {
+                    console.log('[VC] sidebar toggle target:', selectors[i], el);
+                    return el;
+                }
+            }
+            console.warn('[VC] no sidebar toggle button found');
+            return null;
+        }
+
+        function fallbackToggleSidebar() {
+            // Direkter DOM-Hack falls kein Streamlit-Button gefunden.
+            var sb = document.querySelector('section[data-testid="stSidebar"]');
+            if (!sb) { console.warn('[VC] no sidebar element'); return; }
+            var isOpen = sb.getAttribute('aria-expanded') !== 'false'
+                && sb.offsetWidth > 50;
+            if (isOpen) {
+                sb.style.setProperty('transform', 'translateX(-100%)', 'important');
+                sb.style.setProperty('margin-left', '-244px', 'important');
+                sb.setAttribute('aria-expanded', 'false');
+                console.log('[VC] sidebar -> closed (fallback)');
+            } else {
+                sb.style.setProperty('transform', 'translateX(0)', 'important');
+                sb.style.setProperty('margin-left', '0', 'important');
+                sb.setAttribute('aria-expanded', 'true');
+                console.log('[VC] sidebar -> open (fallback)');
+            }
+        }
+
+        btn.addEventListener('click', function() {
+            var target = findToggleTarget();
+            if (target) {
+                fireRealClick(target);
+            } else {
+                fallbackToggleSidebar();
             }
         });
     })();
