@@ -36,6 +36,14 @@ from i18n import t, render_lang_toggle, get_lang
 
 _ASSETS = Path(__file__).parent / "assets"
 
+# Sidebar-State in session_state speichern. Wird in set_page_config()
+# als initial_sidebar_state durchgereicht. Toggle-Buttons (oben links +
+# in der Sidebar) flippen den State und triggern via on_click Rerun.
+# Streamlits Default-Chevron ist in dieser Version verbuggt, daher
+# Python-Native-Pattern statt JS-Hack.
+if "sidebar_state" not in st.session_state:
+    st.session_state.sidebar_state = "expanded"
+
 # Page title used by browser tab. Set once at config time, so we read the
 # lang at module-load from query params directly (session_state isn't ready
 # yet at this point).
@@ -46,8 +54,17 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state=st.session_state.sidebar_state,
 )
+
+
+def _toggle_sidebar():
+    """on_click-Callback. Flippt den Sidebar-State zwischen expanded
+    und collapsed. set_page_config liest das beim naechsten Rerun
+    (der on_click automatisch ausloest)."""
+    st.session_state.sidebar_state = (
+        "collapsed" if st.session_state.sidebar_state == "expanded" else "expanded"
+    )
 
 render_lang_toggle()
 
@@ -169,126 +186,50 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar bleibt im DOM mit forcierter Breite (siehe CSS unten), Toggle
-# laeuft komplett ueber inline-display:none statt ueber Streamlits
-# React-State. Damit umgehen wir den Chevron-Reopen-Bug komplett.
+# Sidebar-State-Toggle via Streamlit-native Pattern.
+# Streamlits Default-Chevron ist verbuggt; wir geben dem User einen
+# eigenen Open-Button auf der Hauptseite wenn die Sidebar zu ist,
+# und einen Close-Button INSIDE der Sidebar wenn sie auf ist. Beide
+# rufen _toggle_sidebar() auf, was st.session_state.sidebar_state
+# flippt; set_page_config liest das beim Auto-Rerun nach on_click.
 st.markdown(
     """
     <style>
-    /* Close-Button in der Sidebar weg, damit User sie nicht schliessen
-       koennen (sonst kommen sie nicht mehr drauf wegen Reopen-Bug) */
+    /* Streamlit-eigene Sidebar-Collapse-Controls aus damit sie nicht
+       mit unserem Toggle in Konflikt geraten. */
     [data-testid="stSidebarCollapseButton"],
-    section[data-testid="stSidebar"] button[kind="header"],
-    section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] {
+    [data-testid="stSidebarCollapsedControl"] {
         display: none !important;
     }
-    /* Sidebar hart auf volle Breite zwingen egal welchen aria-State
-       Streamlit setzt. Sonst kollabiert die Breite auf ~10px und der
-       Text squisht zu 1-Zeichen-Spalten. */
-    section[data-testid="stSidebar"],
-    section[data-testid="stSidebar"][aria-expanded="false"],
-    section[data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 244px !important;
-        max-width: 244px !important;
-        width: 244px !important;
-        transform: translateX(0) !important;
-        margin-left: 0 !important;
-        visibility: visible !important;
+    /* Open-Button-Container mit Marker-Klasse stylen */
+    .vc-sb-open-wrap div[data-testid="stButton"] {
+        margin: 0 0 0.5em 0;
     }
-    section[data-testid="stSidebar"] > div:first-child {
-        width: 244px !important;
-        min-width: 244px !important;
+    .vc-sb-open-wrap button {
+        background: #8b5cf6 !important;
+        color: white !important;
+        border: none !important;
+        font-weight: 700 !important;
     }
-    /* Mobile: Sidebar als 80% Screen-Width statt fix 244px, damit sie
-       nicht abgeschnitten wird; Inhalt scrollbar */
-    @media (max-width: 640px) {
-        section[data-testid="stSidebar"],
-        section[data-testid="stSidebar"][aria-expanded="false"],
-        section[data-testid="stSidebar"][aria-expanded="true"] {
-            min-width: 80vw !important;
-            max-width: 80vw !important;
-            width: 80vw !important;
-        }
-        section[data-testid="stSidebar"] > div:first-child {
-            width: 80vw !important;
-            min-width: 80vw !important;
-        }
-    }
-
-    /* Body-Class steuert Sidebar-Visibility. CSS mit !important
-       gewinnt zuverlaessig gegen Streamlit-internes Inline-Style. */
-    body.vc-sb-hidden section[data-testid="stSidebar"],
-    body.vc-sb-hidden section[data-testid="stSidebar"] > div {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        min-width: 0 !important;
-        max-width: 0 !important;
-    }
-
-    /* Floating Sidebar-Toggle */
-    .vc-sb-toggle {
-        position: fixed; top: 0.55rem; left: 0.6rem;
-        z-index: 2147483646;
-        width: 40px; height: 40px; padding: 0;
-        border-radius: 12px; border: none;
-        background: #8b5cf6; color: white;
-        cursor: pointer;
-        font-size: 22px; font-weight: 700; line-height: 1;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
-        -webkit-tap-highlight-color: rgba(139, 92, 246, 0.3);
-        touch-action: manipulation;
-        transition: transform 0.1s, background 0.15s;
-    }
-    .vc-sb-toggle:hover { background: #7c3aed; }
-    .vc-sb-toggle:active { transform: scale(0.94); }
-    @media (max-width: 640px) {
-        .vc-sb-toggle { width: 42px; height: 42px; font-size: 24px; }
+    .vc-sb-open-wrap button:hover {
+        background: #7c3aed !important;
     }
     </style>
-    <button class="vc-sb-toggle" id="vc-sb-toggle" aria-label="Sidebar toggle">&times;</button>
-    <script>
-    (function() {
-        var btn = document.getElementById('vc-sb-toggle');
-        if (!btn || btn.dataset.bound) return;
-        btn.dataset.bound = '1';
-
-        function refreshBtn() {
-            var hidden = document.body.classList.contains('vc-sb-hidden');
-            btn.innerHTML = hidden ? '&#8801;' : '&times;';
-            btn.setAttribute('aria-label', hidden ? 'Open sidebar' : 'Close sidebar');
-        }
-
-        // Initial state aus sessionStorage holen (ueberlebt Streamlit-Reruns)
-        if (sessionStorage.getItem('vc-sb-hidden') === '1') {
-            document.body.classList.add('vc-sb-hidden');
-        }
-        refreshBtn();
-
-        btn.addEventListener('click', function() {
-            var willHide = !document.body.classList.contains('vc-sb-hidden');
-            document.body.classList.toggle('vc-sb-hidden', willHide);
-            sessionStorage.setItem('vc-sb-hidden', willHide ? '1' : '0');
-            refreshBtn();
-        });
-
-        // Streamlit-Reruns: body-Class kann verloren gehen wenn React
-        // body manipuliert. Re-apply via MutationObserver auf body.
-        var obs = new MutationObserver(function() {
-            var shouldHide = sessionStorage.getItem('vc-sb-hidden') === '1';
-            var isHidden = document.body.classList.contains('vc-sb-hidden');
-            if (shouldHide !== isHidden) {
-                document.body.classList.toggle('vc-sb-hidden', shouldHide);
-                refreshBtn();
-            }
-        });
-        obs.observe(document.body, {attributes: true, attributeFilter: ['class']});
-    })();
-    </script>
     """,
     unsafe_allow_html=True,
 )
+
+
+# Open-Button nur rendern wenn Sidebar collapsed.
+if st.session_state.sidebar_state == "collapsed":
+    st.markdown('<div class="vc-sb-open-wrap">', unsafe_allow_html=True)
+    st.button(
+        "≡ Pro / Lizenz",
+        key="vc_sb_open",
+        on_click=_toggle_sidebar,
+        type="primary",
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
@@ -403,6 +344,14 @@ _pro_url = license_mod.get_buy_url("POLAR_CHECKOUT_URL_PRO_MONTHLY")
 
 # ----- Sidebar: license / pro -----
 with st.sidebar:
+    # Close-Button als erstes Element in der Sidebar - User kann sie
+    # damit zuverlaessig zumachen (Streamlits Default-Chevron ist
+    # verbuggt). Bei Klick auf Hauptseite erscheint dann der Open-Button.
+    st.button(
+        t("✕ Sidebar zumachen", "✕ Close sidebar"),
+        key="vc_sb_close",
+        on_click=_toggle_sidebar,
+    )
     st.subheader(t("Pro / Wasserzeichen entfernen", "Pro / Remove watermark"))
     license_key_input = st.text_input(
         t("Lizenz-Schlüssel", "License key"),
