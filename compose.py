@@ -342,5 +342,17 @@ def compose(audio_path, video_path, output_path, tmp_dir,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg failed: {result.stderr[-1000:]}")
+        import sys
+        # Vollen FFmpeg-Output in stderr loggen (sichtbar in docker logs),
+        # die UI bekommt eine kurze Meldung.
+        print("=== FFmpeg COMMAND ===", file=sys.stderr)
+        print(" ".join(str(x) for x in cmd), file=sys.stderr)
+        print("=== FFmpeg STDERR (full) ===", file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+        print("=== FFmpeg END ===", file=sys.stderr, flush=True)
+        # Letzte 200 Zeichen fuer die UI - meist die echte Fehlerursache am Ende
+        tail = result.stderr.strip().split("\n")[-3:]
+        raise RuntimeError(
+            "FFmpeg failed (volle Diagnose in Docker-Logs): " + " | ".join(tail)
+        )
     return output_path
