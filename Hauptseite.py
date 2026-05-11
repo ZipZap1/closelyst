@@ -638,9 +638,16 @@ def _demo_video_html(source):
 
 
 def _render_demo_expander():
+    # expanded=True hardcoded zwingt das Expander bei jedem Rerun auf,
+    # auch wenn der User es zugemacht hat. Loesung: expanded nur beim
+    # allerersten Visit auf True setzen, danach False (kein Force-Open).
+    # Streamlit merkt sich dann die User-Toggle-Aktion intern.
+    _first = "_demo_seen" not in st.session_state
+    if _first:
+        st.session_state._demo_seen = True
     with st.expander(
         t("Demo: VoiceClip in Aktion (20 Sek)", "Demo: VoiceClip in action (20 sec)"),
-        expanded=True,
+        expanded=_first,
     ):
         html = _demo_video_html(_demo_source)
         if html:
