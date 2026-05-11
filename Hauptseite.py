@@ -182,57 +182,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar startet offen, Breite auf 244px (Desktop) / 80vw (Mobile)
-# gezwungen damit der Inhalt korrekt rendert (Streamlit kollabiert sie
-# manchmal auf 0px). Streamlit-Default-Chevrons fuer Open/Close NICHT
-# versteckt - User soll Sidebar via Pfeil auf+zu machen koennen.
-st.markdown(
-    """
-    <style>
-    section[data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 244px !important;
-        max-width: 244px !important;
-        width: 244px !important;
-    }
-    section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-        width: 244px !important;
-        min-width: 244px !important;
-    }
-    /* Open-Pfeil (Sidebar-zu-State) hart sichtbar halten. Streamlit
-       fadet ihn sonst nach kurzer Zeit weg (bekannter UX-Quirk). */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="stSidebarCollapsedControl"] button {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transition: none !important;
-    }
-    /* Close-Pfeil (Sidebar-offen-State) ebenfalls sichtbar halten */
-    [data-testid="stSidebarCollapseButton"],
-    section[data-testid="stSidebar"] button[kind="header"],
-    section[data-testid="stSidebar"] button[kind="headerNoPadding"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        transition: none !important;
-    }
-    @media (max-width: 640px) {
-        section[data-testid="stSidebar"][aria-expanded="true"] {
-            min-width: 80vw !important;
-            max-width: 80vw !important;
-            width: 80vw !important;
-        }
-        section[data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-            width: 80vw !important;
-            min-width: 80vw !important;
-        }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Sidebar: keine Custom-CSS, kein Width-Force, keine Chevron-Manipulation.
+# Reines Streamlit-Default. Wie vor der Session.
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
