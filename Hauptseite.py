@@ -160,6 +160,48 @@ if _qs.get("status") == "success":
     if _checkout_id:
         st.caption(f"Checkout-Referenz: {_checkout_id[:8]}...")
 
+# Theme-Toggle: User koennen zwischen hell und dunkel switchen.
+# State lebt in session_state, CSS-Injection veraendert Background/Text.
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"
+
+_theme_col1, _theme_col2 = st.columns([10, 1])
+with _theme_col2:
+    _icon = "🌙" if st.session_state.theme == "light" else "☀️"
+    if st.button(_icon, key="theme_toggle", help="Hell-/Dunkel-Modus umschalten"):
+        st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
+        st.rerun()
+
+# Dark-Mode CSS-Overrides
+if st.session_state.theme == "dark":
+    st.markdown(
+        """
+        <style>
+        .stApp, body { background-color: #0f172a !important; color: #f8fafc !important; }
+        [data-testid="stSidebar"] { background-color: #1e293b !important; }
+        [data-testid="stSidebar"] *, .main p, .main div, .main span,
+        .main label, .main h1, .main h2, .main h3, .main h4 {
+            color: #f8fafc !important;
+        }
+        h1 { color: #f8fafc !important; }
+        /* Dropdowns/Inputs */
+        .stTextArea textarea, .stTextInput input, .stSelectbox [data-baseweb="select"] > div {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        /* Expander */
+        .streamlit-expanderHeader, [data-testid="stExpander"] details {
+            background-color: #1e293b !important;
+        }
+        /* Captions weniger transparent in dark */
+        .stCaption, [data-testid="stCaptionContainer"] {
+            color: #94a3b8 !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 st.image(str(_ASSETS / "logo.svg"), width=260)
 
 # Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
