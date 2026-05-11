@@ -150,10 +150,27 @@ st.markdown(
             padding-right: 0.75rem !important;
         }
     }
-    /* Streamlit Header-Bar nimmt 3.75rem oben, das frisst Above-The-Fold-
-       Platz. Komplett verstecken; Sidebar-Toggle bleibt aus dem Sidebar-
-       Element selbst zugaenglich (chevron). */
-    header[data-testid="stHeader"] { display: none !important; }
+    /* Streamlit Header-Bar nimmt 3.75rem oben. Statt komplett zu
+       verstecken (killt Sidebar-Toggle): zero-height + transparent
+       Background, damit der Sidebar-Open/Close-Chevron sichtbar bleibt
+       aber kein Vertikal-Platz mehr fressen. */
+    header[data-testid="stHeader"] {
+        height: 0 !important;
+        min-height: 0 !important;
+        background: transparent !important;
+    }
+    /* Sicherstellen dass die Sidebar-Collapse-Controls sichtbar bleiben */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"] {
+        display: block !important;
+        visibility: visible !important;
+        z-index: 999990 !important;
+    }
+    /* Toolbar rechts (3-Punkte, Deploy) versteckt; entfernt Konflikt
+       mit unserem Language-Toggle, der oben rechts sitzt. */
+    header[data-testid="stHeader"] [data-testid="stToolbar"] {
+        display: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
