@@ -79,6 +79,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Post-purchase Success-Banner: Polar redirected nach Zahlung mit
+# ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
+# direkt sehen dass Kauf durchging und wo der License-Key landet.
+_qs = st.query_params
+if _qs.get("status") == "success":
+    st.success(
+        "**Zahlung erfolgreich.** Du bekommst gleich eine E-Mail von Polar mit "
+        "deinem Lizenz-Schluessel. Pastle ihn links in der Sidebar unter "
+        "'Lizenz-Schluessel' und klick 'Einloesen'."
+    )
+    _checkout_id = _qs.get("checkout_id", "")
+    if _checkout_id:
+        st.caption(f"Checkout-Referenz: {_checkout_id[:8]}...")
+
 st.image(str(_ASSETS / "logo.svg"), width=260)
 
 # Above-the-Fold Value-Prop. Sichtbar bevor User scrollt oder das Form sieht.
