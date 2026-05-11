@@ -278,18 +278,19 @@ st.markdown(
 )
 
 
-# Open-Button (≡) im st.container(key=...) damit das Wrapper-Div die
-# st-key-vc_sb_open_wrap Klasse bekommt. Container wird per CSS fixed
-# oben links positioniert; Button erbt visuelles Styling.
-if st.session_state.sidebar_state == "collapsed":
-    with st.container(key="vc_sb_open_wrap"):
-        st.button(
-            "≡",
-            key="vc_sb_open",
-            on_click=_toggle_sidebar,
-            type="primary",
-            help=t("Sidebar öffnen", "Open sidebar"),
-        )
+# Burger (≡) IMMER rendern - auch wenn Sidebar gerade offen ist.
+# Conditional Render veraendert DOM-Struktur und resettet andere
+# Expander-States (st.expander vergisst User-Toggle wenn sich DOM
+# davor aendert, bekanntes Streamlit-Verhalten). Wenn Sidebar offen
+# ist, deckt sie den Burger optisch ab - kein Schaden.
+with st.container(key="vc_sb_open_wrap"):
+    st.button(
+        "≡",
+        key="vc_sb_open",
+        on_click=_toggle_sidebar,
+        type="primary",
+        help=t("Sidebar öffnen", "Open sidebar"),
+    )
 
 # Post-purchase Success-Banner: Polar redirected nach Zahlung mit
 # ?status=success&checkout_id=... zurueck auf closelyst.com. User soll
