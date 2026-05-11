@@ -245,6 +245,26 @@ def cached_validate(key):
 
 # ----- Sidebar: license / pro -----
 with st.sidebar:
+    # Founder-Personality plus TikTok-CTA. Solo-Founder-Story baut Trust
+    # und treibt Cross-Channel-Traffic zum TikTok-Account.
+    st.markdown(
+        """
+        <div style="padding: 0.75em 0.5em; border-radius: 8px;
+                    background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+                    margin-bottom: 1em;">
+            <div style="font-size: 0.9em; color: #0f172a; line-height: 1.4;">
+                Solo-Founder, baut KI-Tools.
+            </div>
+            <a href="https://www.tiktok.com/@haciibrahimdogan" target="_blank"
+               style="display: inline-block; margin-top: 0.4em; font-weight: 600;
+                      color: #8b5cf6; text-decoration: none; font-size: 0.95em;">
+                Folge auf TikTok @haciibrahimdogan →
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.subheader("Pro / Wasserzeichen entfernen")
     license_key_input = st.text_input(
         "Lizenz-Schlüssel",
