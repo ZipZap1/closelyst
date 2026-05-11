@@ -42,8 +42,8 @@ Dienstleister übertragen:
 
 - **ElevenLabs Inc., USA** (Sprachsynthese und Voice-Cloning, Pro-Tier):
   dein eingegebener Text, optional dein Voice-Sample beim Cloning
-- **OpenAI, L.L.C., USA** (Sprachsynthese im Free-Tier ueber tts-1-hd und
-  gpt-4o-mini-tts): dein eingegebener Text wird an OpenAI uebermittelt und
+- **OpenAI, L.L.C., USA** (Sprachsynthese im Free-Tier über tts-1-hd und
+  gpt-4o-mini-tts): dein eingegebener Text wird an OpenAI übermittelt und
   in Audio umgewandelt. OpenAI speichert API-Inputs laut eigener
   API-Datenrichtlinie maximal 30 Tage und nutzt sie nicht zum Training.
 - **Pexels GmbH, Deutschland** (Stock-Footage-Suche): die Suchwörter
@@ -51,7 +51,7 @@ Dienstleister übertragen:
   dein Prompt, ggf. hochgeladenes Bild oder Video, ggf. Audio-Datei
 - **Polar Software, Inc., USA** (Zahlungsabwicklung als
   Merchant of Record): Email, Rechnungs- und Zahlungsdaten
-- **Supabase Inc., USA** (Datenbank fuer Free-Tier-Rate-Limiting):
+- **Supabase Inc., USA** (Datenbank für Free-Tier-Rate-Limiting):
   ein Hash aus IP-Adresse und Browser-User-Agent, sowie Datum und
   Anzahl deiner Free-Tier-Generierungen. Die rohe IP wird nicht
   gespeichert; sie wird vor dem Speichern via SHA-256 zu einem

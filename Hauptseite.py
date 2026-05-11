@@ -108,8 +108,8 @@ _qs = st.query_params
 if _qs.get("status") == "success":
     st.success(
         "**Zahlung erfolgreich.** Du bekommst gleich eine E-Mail von Polar mit "
-        "deinem Lizenz-Schluessel. Pastle ihn links in der Sidebar unter "
-        "'Lizenz-Schluessel' und klick 'Einloesen'."
+        "deinem Lizenz-Schlüssel. Füge ihn links in der Sidebar unter "
+        "'Lizenz-Schlüssel' ein und klick 'Einlösen'."
     )
     _checkout_id = _qs.get("checkout_id", "")
     if _checkout_id:
@@ -284,8 +284,8 @@ with tab_video:
         "Warum 90 Prozent aller Side-Projects scheitern, und wie du in den 10 Prozent landest. Erstens: kein Markt-Test vorher. Zweitens: zu viel Feature, zu wenig Fokus. Drittens: keine Distribution.",
         "Ich habe in einem Monat 100 aktive Nutzer bekommen. Mit null Marketing-Budget. So lief das. Hook eins: jeden Tag ein TikTok. Hook zwei: 20 DMs an Micro-Creator. Hook drei: Product Hunt Launch.",
         "Die meisten Founder bauen das falsche Produkt. Sie fragen nicht ihre User. Sie schauen nicht auf Daten. Sie verlieben sich in ihre Idee. Hier sind drei Fragen, die du vor jedem Build stellen solltest.",
-        "Stell dir vor du koenntest in zwei Minuten ein TikTok ohne dein Gesicht zu zeigen. Text rein, fertiges Video raus. Mit AI-Voice, Stock-Footage und Captions. Genau das macht VoiceClip.",
-        "Drei Sachen die ich gerne vor meiner ersten App gewusst haette. Erstens: Distribution ist wichtiger als das Produkt. Zweitens: dein erster Launch wird floppen, das ist okay. Drittens: ship oft, ship schnell.",
+        "Stell dir vor du könntest in zwei Minuten ein TikTok ohne dein Gesicht zu zeigen. Text rein, fertiges Video raus. Mit KI-Stimme, Stockvideo und Untertiteln. Genau das macht VoiceClip.",
+        "Drei Sachen die ich gerne vor meiner ersten App gewusst hätte. Erstens: Distribution ist wichtiger als das Produkt. Zweitens: dein erster Launch wird floppen, das ist okay. Drittens: ship oft, ship schnell.",
     ]
 
     def _load_example():
@@ -319,7 +319,7 @@ with tab_video:
             index=0,
             horizontal=True,
             key="voice_backend_radio",
-            help="ElevenLabs ist expressiver, hat synced Captions und Voice-Cloning. OpenAI ist konsistenter und fuer englischen Content oft genauso gut.",
+            help="ElevenLabs ist expressiver, hat synced Untertitel und Voice-Cloning. OpenAI ist konsistenter und für englischen Content oft genauso gut.",
         )
         voice_backend = "elevenlabs" if backend_label.startswith("ElevenLabs") else "openai_tts1hd"
     else:
@@ -418,7 +418,7 @@ with tab_video:
             type=["mp4", "mov", "m4v", "jpg", "jpeg", "png", "webp"],
             accept_multiple_files=False,
             key="upload_media_uploader",
-            help="Wird auf 9:16 gecroppt. Tipp: unter 10 MB = schneller Upload. Video lokal mit ffmpeg komprimieren falls zu gross.",
+            help="Wird auf 9:16 gecroppt. Tipp: unter 10 MB = schneller Upload. Video lokal mit ffmpeg komprimieren falls zu groß.",
         )
         if uploaded_media is not None:
             _mb = uploaded_media.size / 1_000_000
@@ -443,7 +443,7 @@ with tab_video:
             type=["mp4", "mov", "m4v"],
             accept_multiple_files=False,
             key="lipsync_uploader",
-            help="Tipp: unter 10 MB = schneller Upload. Video lokal komprimieren falls zu gross.",
+            help="Tipp: unter 10 MB = schneller Upload. Video lokal komprimieren falls zu groß.",
         )
         if uploaded_media is not None:
             _mb = uploaded_media.size / 1_000_000
