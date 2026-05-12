@@ -46,7 +46,7 @@ st.set_page_config(
     page_title=_page_title_de if _initial_lang == "de" else _page_title_en,
     page_icon=str(_ASSETS / "icon.png"),
     layout="centered",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 # render_lang_toggle() wird am Ende der Seite gerendert (siehe Footer)
