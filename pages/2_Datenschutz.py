@@ -66,6 +66,17 @@ Dienstleister übertragen:
   pseudonymen Fingerprint reduziert. Rechtsgrundlage: Art. 6 Abs. 1
   lit. f DSGVO (berechtigtes Interesse an Missbrauchsschutz und
   Kostenkontrolle). Aufbewahrung: 30 Tage rollierend.
+- **Umami Software, Inc., USA** (Web-Analyse via Umami Cloud,
+  cloud.umami.is): aggregierte Nutzungsdaten zum Verständnis,
+  welche Seiten besucht werden. Erfasst werden: besuchte URL,
+  Referrer, Browser-Typ, Geräteklasse, ungefähre Region anhand der
+  IP-Adresse. Umami setzt **keine Cookies**, speichert **keine
+  IP-Adressen oder personenbezogenen Daten** und verwendet kein
+  Fingerprinting. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO
+  (berechtigtes Interesse an Reichweitenmessung und Verbesserung
+  des Angebots). Da keine personenbezogenen Daten erhoben werden,
+  ist keine Einwilligung nach § 25 TDDDG erforderlich. Aufbewahrung
+  gemäß Umami-Cloud-Richtlinien.
 
 Übertragungen in die USA basieren auf Standardvertragsklauseln nach
 Art. 46 DSGVO.
