@@ -461,24 +461,33 @@ Tab **Enhance image** is a Pro tool: image in, AI makes it sharper.
 
 # Optional demo-video and ProductHunt embed. Both are read from env so
 # they show up only when set; nothing leaks before launch.
-# Demo prefers external URL (CDN), falls back to bundled assets/demo.mp4
-# wenn die im Repo liegt. So oder so: Demo erscheint sobald File / URL da ist.
+# Demo-Videos werden via Streamlits Static-File-Serving ausgeliefert
+# (enableStaticServing=true in .streamlit/config.toml). URL-Pattern:
+# /app/static/<filename>. Sprachabhaengig: demo.mp4 (DE) oder
+# demo_en.mp4 (EN). DEMO_VIDEO_URL env var overrided beides falls
+# extern gehostet (z.B. CDN).
 _demo_url = os.environ.get("DEMO_VIDEO_URL", "").strip()
-# Sprachabhaengiges Demo: demo_en.mp4 wenn lang=en, sonst demo.mp4.
-# Fallback auf demo.mp4 wenn EN-File fehlt.
-_demo_local = _ASSETS / ("demo_en.mp4" if get_lang() == "en" else "demo.mp4")
-if not _demo_local.exists():
-    _demo_local = _ASSETS / "demo.mp4"
-_demo_source = _demo_url if _demo_url else (str(_demo_local) if _demo_local.exists() else "")
+_static_dir = Path(__file__).parent / "static"
+_demo_static_file = "demo_en.mp4" if get_lang() == "en" else "demo.mp4"
+if not (_static_dir / _demo_static_file).exists():
+    _demo_static_file = "demo.mp4"
+_demo_source = _demo_url or f"app/static/{_demo_static_file}"
 _ph_url = os.environ.get("PRODUCTHUNT_URL", "").strip()
 
 
 def _demo_video_html(source):
     """Autoplay-stumm + Klick-fuer-Ton (Instagram-Pattern). Browser blocken
     Autoplay mit Audio bis zur ersten User-Interaktion; muted Autoplay laeuft
-    immer. Erster Klick auf das Video entmutet und zaehlt als Interaktion."""
-    if source.startswith(("http://", "https://")):
-        src = source
+    immer. Erster Klick auf das Video entmutet und zaehlt als Interaktion.
+
+    source kann sein:
+    - vollstaendige URL (http/https) -> direkt verwendet
+    - relativer Pfad (app/static/...) -> Browser laedt von Streamlits
+      Static-Server, kein base64-Inline noetig (massiv kleinerer HTML-Payload)
+    - lokaler Filesystem-Pfad -> Fallback: base64-Encoding (legacy)
+    """
+    if source.startswith(("http://", "https://", "app/", "/app/")):
+        src = "/" + source if not source.startswith("/") else source
     else:
         try:
             with open(source, "rb") as f:

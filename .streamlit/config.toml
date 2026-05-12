@@ -2,6 +2,9 @@
 # Cap user uploads to 50 MB. Default is 200 MB which is too generous
 # for Streamlit Cloud free tier when combined with FFmpeg processing.
 maxUploadSize = 50
+# Files in ./static/ served at /app/static/<filename>. Wir nutzen
+# das fuer Demo-Videos statt sie als base64 ins HTML zu inlinen.
+enableStaticServing = true
 
 [browser]
 # Disable Streamlit's default usage telemetry to Snowflake. Without
