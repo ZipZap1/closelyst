@@ -99,19 +99,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Umami Analytics. Tracking-Script aus Umami-Cloud, Website-ID via
-# env var damit sie nicht im Git-Repo landet. Wenn UMAMI_WEBSITE_ID
-# nicht gesetzt ist: kein Tracking, kein Schaden.
-_umami_id = os.environ.get("UMAMI_WEBSITE_ID", "").strip()
-if _umami_id:
-    st.markdown(
-        f"""
-        <script defer src="https://cloud.umami.is/script.js"
-                data-website-id="{_umami_id}"></script>
-        """,
-        unsafe_allow_html=True,
-    )
-
 # iOS Safari fullscreent HTML5-Videos beim ersten User-Tap, wenn das
 # playsinline-Attribut fehlt. st.video() setzt es nicht, also patchen
 # wir alle <video>-Elemente per MutationObserver. Greift fuer Demo-
